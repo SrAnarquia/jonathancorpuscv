@@ -1,13 +1,256 @@
-body {
+/* -------------------------------
+   Reset y tipografía
+--------------------------------*/
+* {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+/* -------------------------------
+   General
+--------------------------------*/
+body {
+  background: #ffffff; /* blanco puro para el contenido */
+  color: #374151;
+  line-height: 1.7;
+  font-family: "Inter", "Segoe UI", sans-serif;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* -------------------------------
+   Header
+--------------------------------*/
+header {
+  background: #f8f9fa; /* blanco hueso (off-white) */
+  border-bottom: 1px solid #e5e7eb;
+  padding: 2rem 1rem 1.2rem 1rem;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #2563eb, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.2rem; /* compacto con las tags */
+}
+
+header .tags {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6b7280; /* gris elegante */
+  margin-bottom: 1rem; /* separación con nav */
+  line-height: 1.2;
+}
+
+header .contact {
+  font-size: 0.9rem;       /* tamaño pequeño y legible */
+  color: #374151;          /* gris oscuro para texto */
+  margin-top: 0.2rem;      /* espacio ligero con la subtitle */
+  line-height: 1.4;
+  display: flex;
+  justify-content: center; /* centrado horizontal */
+  gap: 0.5rem;             /* espacio entre enlaces */
+  flex-wrap: wrap;          /* si es muy estrecho, los enlaces bajan de línea */
+}
+
+header .contact a {
+  color: #2563eb;           /* azul gradiente principal */
+  text-decoration: none;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+header .contact a:hover {
+  text-decoration: underline;
+  color: #06b6d4;           /* azul secundario al pasar el mouse */
+}
+/* -------------------------------
+   Nav
+--------------------------------*/
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+nav a {
+  text-decoration: none;
+  color: #374151;
+  font-weight: 600;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: #2563eb;
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: #2563eb;
+  transition: width 0.3s ease;
+}
+
+nav a:hover::after {
+  width: 100%;
+}
+
+/* -------------------------------
+   Secciones
+--------------------------------*/
+section {
+  background: #ffffff; /* blanco puro */
+  padding: 4rem 2rem;
+  max-width: 1100px;
+  margin: 2rem auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+h2 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  background: linear-gradient(90deg, #2563eb, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
+//* ------------------------------- 
+Proyectos 
+--------------------------------*/ 
+.proyectos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* separación entre cards */
+}
+
+.card {
+  display: flex;
+  gap: 1rem;
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  margin-top: 1.5rem;
+}
+
+/* Columna izquierda: foto circular del título */
+.card-left {
+  flex: 0 0 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4px; /* pequeña separación con el texto */
+}
+
+.project-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #2563eb;
+}
+
+/* Columna central: titulo, descripcion, beneficios */
+.card-center {
+  flex: 1;
+}
+
+.card-center h4 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.1rem;
+  display: inline-block;
+}
+
+.card-center p {
+  margin: 0.5rem 0;
+  color: #374151;
+}
+
+.card-center ul {
+  padding-left: 1.2rem;
+  margin: 0;
+  color: #374151;
+}
+
+.card-center ul li {
+  margin-bottom: 0.3rem;
+}
+
+/* Columna derecha: imagen del proyecto */
+.card-right {
+  flex: 0 0 150px;
+  display: flex;
+  align-items: center; /* centra verticalmente con descripcion + beneficios */
+}
+
+.card-right img {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.card-right img:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+  .card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .card-right {
+    flex: none;
+    width: 80%;
+    margin-top: 1rem;
+  }
+}
+
+
+
+/* -------------------------------
+   Video
+--------------------------------*/
+.video-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+iframe {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  max-width: 100%;
+}
+
+
+
+/* -------------------------------
+   Footer
+--------------------------------*/
+footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: #ffffff;
+  color: #6b7280;
+  font-size: 0.9rem;
+  border-top: 1px solid #e5e7eb;
 }
