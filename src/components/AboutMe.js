@@ -34,7 +34,7 @@ export default function AboutMe() {
           Soy Ingeniero en Electrónica y Automatización con experiencia en desarrollo de sistemas embebidos, administración de sistemas y soluciones web. Mi trayectoria no se limita al desarrollo: también he trabajado en áreas técnicas como mecánica automotriz, análisis de datos, planeación e innovación tecnológica.
         </p>
         <p>
-          Me especializo en proyectos que optimizan procesos internos y mejoran la comunicación en entornos industriales y de salud. He colaborado con empresas e instituciones como <strong>KIA México</strong>, <strong>Hospital Universitario UANL</strong> y <strong>AT&T</strong>, implementando herramientas digitales que incrementan la eficiencia y reducen tiempos.
+          Me especializo en proyectos que optimizan procesos internos y mejoran la comunicación en entornos industriales y de salud. He colaborado con empresas e instituciones como <strong>KIA México</strong> y el <strong>Hospital Universitario de la UANL</strong>, implementando herramientas digitales que incrementan la eficiencia y reducen tiempos.
         </p>
         <p>
           Amo lo que hago, disfruto enfrentar nuevos retos y siempre busco proponer mejoras mediante la tecnología, sin importar el contexto o la complejidad del proyecto. Mi enfoque combina pasión, creatividad y eficiencia para generar soluciones reales y de impacto.
