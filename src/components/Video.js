@@ -10,7 +10,7 @@ export default function Video() {
 
           
 
-          src="https://www.youtube.com/watch?v=kB4uux4evWQ"
+          src="https://www.youtube.com/embed/kB4uux4evWQ"
 
           title="Video de Jonathan Corpus"
           frameBorder="0"
