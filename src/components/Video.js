@@ -7,7 +7,7 @@ export default function Video() {
         <iframe
           width="560"
           height="315"
-          src="https://www.youtube.com/embed/Ung1lMjrzko"
+          src="https://www.youtube.com/embed/kB4uux4evWQ"
           title="Video de Jonathan Corpus"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
