@@ -9,7 +9,7 @@ export default function Projects() {
 
 	    <div className="card">
           <div className="card-left">
-            <img src="/Food.png" alt="MealFlow Image" className="project-icon" />
+            <img src="/Food.png" alt="MealFlow" className="project-icon" />
           </div>
           <div className="card-center">
             <h4>MealFlow - Autotransportes Especializados Alfa</h4>
