@@ -104,6 +104,63 @@ nav a:hover::after {
   width: 100%;
 }
 
+
+/* -------------------------------
+   CV Dropdown Agregado el dia 3/16/2026
+--------------------------------*/
+.cv-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.cv-button {
+  background: none;
+  border: none;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+}
+
+.cv-button:hover {
+  color: #2563eb;
+}
+
+.cv-menu {
+  display: none;
+  position: absolute;
+  top: 30px;
+  left: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-width: 160px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  overflow: hidden;
+  z-index: 100;
+}
+
+.cv-menu a {
+  display: block;
+  padding: 0.6rem 1rem;
+  text-decoration: none;
+  color: #374151;
+  font-weight: 500;
+}
+
+.cv-menu a:hover {
+  background: #f3f4f6;
+  color: #2563eb;
+}
+
+.cv-dropdown:hover .cv-menu {
+  display: block;
+}
+
+
+
+
 /* -------------------------------
    Secciones
 --------------------------------*/
