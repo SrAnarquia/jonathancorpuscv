@@ -7,6 +7,38 @@ export default function Projects() {
         {/* ================== Transformación Digital ================== */}
         <h3>Transformación Digital</h3>
 
+	    <div className="card">
+          <div className="card-left">
+            <img src="/AppScann.png" alt="FoodOps Tracker" className="project-icon" />
+          </div>
+          <div className="card-center">
+            <h4>MealFlow - Autotransportes Especializados Alfa</h4>
+            <p>
+              Desarrollo de una <strong>aplicación móvil + plataforma web</strong> para la 
+              digitalización del proceso de compra de alimentos dentro de la organización.
+              El sistema reemplaza listas manuales que generaban retrasos operativos, 
+              permitiendo registrar pedidos mediante el <strong>escaneo de códigos QR en gafetes</strong>.
+      
+              La aplicación envía la información a un <strong>Backend API</strong> que valida 
+              al usuario e inserta automáticamente los datos en base de datos, generando una <strong>trazabilidad completa del consumo</strong>: quién compró, qué compró, 
+               
+              cuándo y desde qué área.
+            </p>
+            <ul>
+              <li>Eliminación de procesos manuales y reducción de tiempos de espera</li>
+              <li>Registro automático mediante escaneo QR</li>
+              <li>Trazabilidad completa de consumo por empleado y departamento</li>
+              <li>Integración Mobile + Web + Backend API</li>
+              <li>Optimización operativa en entornos industriales</li>
+            </ul>
+          </div>
+          <div className="card-right">
+            <img src="/AppScannAndroid.png" alt="Vista del sistema FoodOps Tracker" />
+          </div>
+        </div>
+
+
+
         <div className="card">
           <div className="card-left">
             <img src="/TransformationDashboard.png" alt="Transformación Digital" className="project-icon" />
