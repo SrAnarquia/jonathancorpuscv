@@ -44,8 +44,8 @@ BASE=http://localhost:4180 npm run test:e2e
 
 | Archivo | Para qué | Estado |
 |---|---|---|
-| `JonathanCorpusCV_ESP.pdf` | Botón «CV en español» | Incluido (CV aprobado el 1 de noviembre de 2026, versión 6.7; desde la 6.20 con el enlace al portafolio en lugar de la ubicación). Si falta, el botón se marca como *(pendiente)* |
-| `JonathanCorpusCV_ENG.pdf` | Botón «CV in English» | Incluido (CV aprobado el 1 de noviembre de 2026, versión 6.7; desde la 6.20 con el enlace al portafolio en lugar de la ubicación) |
+| `JonathanCorpusCV_ESP.pdf` | Botón «CV en español» | Incluido (CV aprobado el 1 de noviembre de 2026, versión 6.7; desde la 6.20 con el enlace al portafolio en lugar de la ubicación y desde la 6.21 con los íconos de contacto en vector). Si falta, el botón se marca como *(pendiente)* |
+| `JonathanCorpusCV_ENG.pdf` | Botón «CV in English» | Incluido (CV aprobado el 1 de noviembre de 2026, versión 6.7; desde la 6.20 con el enlace al portafolio en lugar de la ubicación y desde la 6.21 con los íconos de contacto en vector) |
 | `Me.jpg` | (ya no se usa) | La página «Sobre mí» se quitó; queda una copia recortada en `assets-src/Me.jpg` por si se quiere usar |
 | `musica.mp3` | Música de fondo | Incluida, atenuada al 15 % del original (ver `docs/CONTENIDO.md`, sección 10) |
 
@@ -77,7 +77,18 @@ docs/INFORME.md        ← informe de la auditoría y de los cambios
 
 ## Desplegar en Vercel
 
-1. Sube el proyecto a un repositorio de GitHub (sin `node_modules` ni `dist`).
+1. Sube el proyecto a un repositorio de GitHub (sin `node_modules` ni `dist`; `.gitignore` ya los deja fuera). Si el repositorio ya tiene otra versión del sitio, súbela encima sin borrar su historial ni forzar nada, desde la carpeta del proyecto:
+
+   ```
+   git remote add origin https://github.com/SrAnarquia/jonathancorpuscv.git
+   git fetch origin
+   git reset --soft origin/main
+   git add -A
+   git commit -m "Nueva versión del portafolio"
+   git push origin HEAD:main
+   ```
+
+   El commit queda con los archivos de esta carpeta, exactamente; lo que solo existía en la versión anterior sale del repositorio (sigue en su historial). Si la carpeta no tiene `.git`, corre antes `git init -b main`.
 2. En Vercel: *Add New → Project*, importa el repositorio. `vercel.json` ya define Framework **Vite**, comando `npm run build` y salida `dist`.
 3. `vercel.json` también redirige las rutas del sitio (`/proyecto/…`, `/nave`, `/video`, `/sobremi`) a `index.html`, sin tocar los archivos con extensión: un PDF que falte da 404 en lugar de la página.
 4. Y manda cabeceras de seguridad en cada respuesta: una política de contenido a la medida del sitio (solo sus propios scripts, Google Fonts, YouTube y Drive), protección para que nadie meta el portafolio dentro de otra página, `nosniff`, `Referrer-Policy` y `Permissions-Policy`. Si agregas otro proveedor de video o, más adelante, el captcha del chat, hay que añadir su dominio: ver `docs/CONTENIDO.md`, sección 15.

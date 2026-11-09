@@ -26,7 +26,7 @@ export const PROFILE = {
     intro:
       "Aquí el principito encontró su nave. Representa lo que sigue: la curiosidad que me trajo de los talleres a la ingeniería y los proyectos que quiero construir.",
     motivation:
-      "Me gusta entender cómo funcionan los sistemas y hacer que den información útil. Disfruto los retos nuevos y busco aprender de equipos técnicos fuertes para seguir creciendo.",
+      "Me motiva enfrentar nuevos retos técnicos, desarrollar habilidades y aportar valor dondequiera que esté. Me apasiona la investigación y el desarrollo (R&D), y estoy abierto a distintos roles en los que pueda seguir creciendo y contribuyendo.",
     goals: [
       "Llevar mi robot 6-DOF al entorno virtual como gemelo digital (en desarrollo, Unity + Meta Quest 3S).",
       "Seguir creciendo junto a equipos técnicos fuertes y asumir retos nuevos.",

@@ -1,6 +1,61 @@
 # Informe de entrega: portafolio de Jonathan Corpus
 
-Fecha: 8 de noviembre de 2026. Base: `jonathancorpusV3.rar` (carpeta `portafolio-vite`). Última revisión: versión 6.20 (sobre la 6.19; la numeración salta de 4.6 a 6 a petición tuya; música: pista al 15 % y control al 35 %, sin cambios).
+Fecha: 9 de noviembre de 2026. Base: `jonathancorpusV3.rar` (carpeta `portafolio-vite`). Última revisión: versión 6.21 (sobre la 6.20; la numeración salta de 4.6 a 6 a petición tuya; música: pista al 15 % y control al 35 %, sin cambios).
+
+## Versión 6.21: «Lo que me mueve» nuevo y los CV con íconos en vector
+
+Lo que pediste el 9 de noviembre, sobre la V6.20:
+
+- Cambiar «Lo que me mueve», en la nave: buscar retos técnicos nuevos, desarrollar habilidades y aportar valor; tu sueño de trabajar en R&D, sin cerrarte a roles que no sean 100 % lo que buscas.
+- Poner en el portafolio los CV con los íconos nuevos, para subirlo a GitHub y que Vercel lo publique.
+
+| Qué pediste | Cómo queda |
+|---|---|
+| **«Lo que me mueve».** | **Antes:** «Me gusta entender cómo funcionan los sistemas y hacer que den información útil. Disfruto los retos nuevos y busco aprender de equipos técnicos fuertes para seguir creciendo.»<br><br>**Ahora:** «Me motiva enfrentar nuevos retos técnicos, desarrollar habilidades y aportar valor dondequiera que esté. Me apasiona la investigación y el desarrollo (R&D), y estoy abierto a distintos roles en los que pueda seguir creciendo y contribuyendo.»<br><br>**En inglés:** «I'm driven by taking on new technical challenges, building skills and adding value wherever I am. I'm passionate about research and development (R&D), and I'm open to different roles where I can keep growing and contributing.»<br><br>Usé «me apasiona» en lugar de «mi sueño es trabajar en R&D» a propósito: dice claro qué te mueve, sin que suene a que solo aceptas eso ni a que un puesto fuera de R&D sería de paso. «Abierto a distintos roles» te deja la puerta abierta en empresas grandes. |
+| **Los CV con los íconos nuevos.** | Los botones de descarga ya entregan los CV del 9 de noviembre, con los íconos de contacto redibujados en vector (teléfono, correo, video y globo). Solo cambia esa fila: el QR y el resto quedan igual. |
+
+Lo que noté, sin que sea una falla:
+
+- El segundo de «Próximos objetivos» («Seguir creciendo junto a equipos técnicos fuertes y asumir retos nuevos») ahora repite la idea de «Lo que me mueve». Si quieres, lo cambio por otro objetivo.
+
+Lo que no se tocó:
+
+- El resto del sitio.
+- Tu `vite.config.js`, byte por byte.
+
+Archivos modificados:
+
+- `src/data/profile.js` y `profile.en.js`: «Lo que me mueve».
+- `public/JonathanCorpusCV_ESP.pdf` y `_ENG.pdf`: los CV nuevos (los mismos de `entregas/cv-2026-11/`).
+- `README.md`: los pasos para subir una versión nueva sobre un repositorio que ya existe, y la nota de los CV. Este informe.
+
+Pruebas:
+
+- Unitarias: 43/43 (`npm test`).
+- e2e: 417/418 en la corrida completa, contra el servidor con las cabeceras de producción y en PC y celular. La que falló fue el aviso «Enlace de LinkedIn copiado» en Contacto, por tiempo: el aviso dura 2,6 segundos y esa comprobación llegó tarde. Repetida con su bloque, pasó junto con las otras 46 del asistente (47/47). Nada de esta versión toca el asistente.
+- Build y unitarias repetidas desde un extracto limpio del zip.
+
+Para subirlo a GitHub (y que Vercel lo publique):
+
+1. Descomprime el zip y entra a la carpeta `portafolio-vite`.
+2. Abre ahí una terminal y corre:
+
+   ```
+   git remote add origin https://github.com/SrAnarquia/jonathancorpuscv.git
+   git fetch origin
+   git reset --soft origin/main
+   git add -A
+   git commit -m "V6.21: portafolio de El principito"
+   git push origin HEAD:main
+   ```
+
+3. La V6.21 queda encima de lo que haya en GitHub (la v1 o la V6.20, si ya la subiste), sin borrar su historial ni forzar nada. Si sale «not a git repository», corre antes `git init -b main`. Los avisos de «LF will be replaced by CRLF» son normales en Windows.
+4. Si tu Vercel está conectado al repositorio, publica solo al recibir el push: `vercel.json` ya le indica Vite, `npm run build` y la carpeta `dist`, aunque el proyecto se haya creado como Create React App. Si el build fallara por la versión de Node, en Vercel elige Node.js 22.x (*Settings → Build and Deployment*).
+
+Qué verificar a mano:
+
+- La nave: «Lo que me mueve», en español y en inglés.
+- Los CV desde los botones de descarga.
 
 ## Versión 6.20: «Portafolio» en lugar de la ubicación en tu CV
 

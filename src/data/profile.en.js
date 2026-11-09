@@ -16,7 +16,7 @@ export const PROFILE_EN = {
     intro:
       "Here the little prince found his ship. It stands for what comes next: the curiosity that took me from repair shops to engineering, and the projects I want to build.",
     motivation:
-      "I like understanding how systems work and making them produce useful information. I enjoy new challenges and look to learn from strong technical teams to keep growing.",
+      "I'm driven by taking on new technical challenges, building skills and adding value wherever I am. I'm passionate about research and development (R&D), and I'm open to different roles where I can keep growing and contributing.",
     goals: [
       "Bring my 6-DOF robot into the virtual environment as a digital twin (in development, Unity + Meta Quest 3S).",
       "Keep growing alongside strong technical teams and take on new challenges.",
