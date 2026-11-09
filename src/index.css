@@ -1,354 +1,908 @@
-/* -------------------------------
-   Reset y tipografía
---------------------------------*/
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Inter", "Segoe UI", sans-serif;
+/* ==========================================================
+   Jonathan Corpus · Portafolio inspirado en El principito
+   Paleta: papel marfil, tinta azul noche, oro cálido, acuarela.
+   ========================================================== */
+
+:root {
+  --paper: #f8f2e4;
+  --paper-2: #f0e6cf;
+  --paper-3: #fffaf0;
+  --ink: #1f2a44;
+  --ink-soft: #4a5470;
+  --night: #141d36;
+  --night-2: #22305a;
+  --gold: #e2b04a;
+  --gold-deep: #9a6a1c;
+  --rose: #c9455a;
+  --sage: #4f8a6a;
+  --line: rgba(31, 42, 68, 0.14);
+  --on-night: #f3ead6;
+  --on-night-soft: #c3c4d6;
+  --radius: 18px;
+  --shadow: 0 18px 50px -20px rgba(20, 29, 54, 0.45);
+  --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --sans: "Nunito Sans", "Segoe UI", system-ui, sans-serif;
+  --topbar: 62px;
+  /* Texto sobre fondos dorados: constante en ambos temas (el oro no cambia). */
+  --on-gold: #1f2a44;
+  --topbar-bg: rgb(248, 242, 228);
+  /* La barra clara es opaca: un desenfoque detrás no se vería y costaría en cada desplazamiento. */
+  --topbar-blur: none;
+  --music-on-bg: #fbf1d6;
+  --music-on-border: rgba(226, 176, 74, 0.8);
+  --btn2-border: rgba(31, 42, 68, 0.45);
+  --wash: rgba(31, 42, 68, 0.06);
+  --glow-gold: rgba(226, 176, 74, 0.16);
+  --glow-blue: rgba(127, 180, 216, 0.16);
+  --stars: none;
+  color-scheme: light;
 }
-/* -------------------------------
-   General
---------------------------------*/
+
+/* ---------- Modo oscuro ----------
+   No es una inversión: es la misma página de noche. El papel marfil se vuelve el
+   cielo del principito (azul profundo con estrellas), la tinta se vuelve crema y
+   el oro se aclara donde es texto. El universo 3D, el pie y el reproductor ya
+   viven de noche y quedan igual en los dos temas. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #101831;
+    --paper-2: #202c54;
+    --paper-3: #182344;
+    --ink: #f3ead6;
+    --ink-soft: #c0c4da;
+    --gold-deep: #e9c372;
+    --line: rgba(243, 234, 214, 0.18);
+    --topbar-bg: rgba(14, 21, 44, 0.96);
+    --topbar-blur: saturate(1.4) blur(12px);
+    --music-on-bg: rgba(226, 176, 74, 0.07);
+    --music-on-border: rgba(226, 176, 74, 0.45); /* de noche el chip encendido es discreto: las barras ya dicen que suena */
+    --btn2-border: rgba(243, 234, 214, 0.55);
+    --wash: rgba(243, 234, 214, 0.08);
+    --glow-gold: rgba(226, 176, 74, 0.1);
+    --glow-blue: rgba(127, 180, 216, 0.07);
+    --stars:
+      radial-gradient(1.6px 1.6px at 15% 8%, rgba(243, 234, 214, 0.9) 50%, transparent 51%),
+      radial-gradient(1px 1px at 33% 22%, rgba(243, 234, 214, 0.65) 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 58% 5%, rgba(242, 200, 106, 0.8) 50%, transparent 51%),
+      radial-gradient(1px 1px at 76% 16%, rgba(243, 234, 214, 0.6) 50%, transparent 51%),
+      radial-gradient(1.3px 1.3px at 90% 29%, rgba(243, 234, 214, 0.8) 50%, transparent 51%),
+      radial-gradient(1px 1px at 7% 38%, rgba(242, 200, 106, 0.55) 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 45% 47%, rgba(243, 234, 214, 0.5) 50%, transparent 51%);
+    color-scheme: dark;
+  }
+  /* La etiqueta flotante al pasar el cursor se enciende en crema (como una estrella). */
+  .u-label.is-hover { background: #f3ead6; color: #1f2a44; border-color: #f3ead6; }
+  .u-label.is-hover .u-label-num { color: #9a6a1c; }
+  /* La ilustración del principito gana un halo cálido en la noche. */
+  .hero-art svg { filter: drop-shadow(0 0 34px rgba(226, 176, 74, 0.18)); }
+  /* Botón primario genérico: crema sobre noche. */
+  .btn-primary { background: var(--on-night); color: #1f2a44; }
+  .btn-primary:hover { background: #fffaf0; }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+/* Al saltar a una sección queda justo bajo la barra (el universo, pegado borde con borde); el contacto conserva su aire. */
+html { scroll-padding-top: var(--topbar); -webkit-text-size-adjust: 100%; }
+#contacto { scroll-margin-top: 8px; }
 body {
-  background: #ffffff; /* blanco puro para el contenido */
-  color: #374151;
-  line-height: 1.7;
-  font-family: "Inter", "Segoe UI", sans-serif;
+  font-family: var(--sans);
+  color: var(--ink);
+  line-height: 1.6;
+  background:
+    var(--stars),
+    radial-gradient(60% 50% at 85% 8%, var(--glow-gold), transparent 70%),
+    radial-gradient(50% 40% at 6% 30%, var(--glow-blue), transparent 70%),
+    var(--paper);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+img, svg, video, canvas { display: block; max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 600; line-height: 1.12; letter-spacing: -0.01em; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 6px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* Aviso sin JavaScript (index.html). En una clase y no en línea: la política de seguridad no admite estilos en línea. */
+.noscript { max-width: 640px; margin: 2rem auto; padding: 1rem; font-family: sans-serif; line-height: 1.6; }
+.eyebrow { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-deep); margin-bottom: 0.6rem; }
+.note { font-size: 0.92rem; color: var(--ink-soft); background: var(--paper-2); border-radius: 12px; padding: 0.6rem 0.9rem; }
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 44px; padding: 0.55rem 1.1rem; border-radius: 999px;
+  font-weight: 800; font-size: 0.95rem; text-decoration: none; cursor: pointer;
+  border: 1.5px solid transparent; transition: transform 0.15s ease, background 0.2s, box-shadow 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+.btn-primary { background: var(--ink); color: var(--paper-3); }
+.btn-primary:hover { background: var(--night-2); }
+.btn-secondary { background: transparent; color: var(--ink); border-color: var(--btn2-border); }
+.btn-secondary:hover { background: var(--wash); border-color: var(--ink); }
+.btn-gold { background: var(--gold); color: var(--on-gold); box-shadow: 0 8px 22px -10px rgba(154, 106, 28, 0.8); }
+.btn-gold:hover { background: #ecc066; }
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn-ghost:hover:not(:disabled) { background: var(--paper-2); }
+.btn-lg { min-height: 52px; padding: 0.7rem 1.5rem; font-size: 1.02rem; }
+.btn.is-unavailable { border-style: dashed; opacity: 0.7; cursor: not-allowed; }
+.btn.is-unavailable:hover { transform: none; }
+.btn small { font-weight: 600; opacity: 0.8; }
+
+.icon-btn {
+  display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  border: 1.5px solid var(--line); background: var(--paper-3); color: var(--ink); cursor: pointer; flex: none;
+  transition: background 0.2s, border-color 0.2s;
+}
+.icon-btn:hover { background: var(--paper-2); border-color: var(--ink-soft); }
+
+.chip-btn {
+  display: inline-flex; align-items: center; gap: 0.45rem; min-height: 40px; padding: 0.4rem 0.95rem;
+  border-radius: 999px; border: 1.5px solid var(--line); background: var(--paper-3); color: var(--ink);
+  font-weight: 700; font-size: 0.88rem; cursor: pointer; white-space: nowrap;
+}
+.chip-btn:hover:not(:disabled) { border-color: var(--ink-soft); }
+.chip-btn.is-on { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+.chip-btn:disabled { opacity: 0.5; cursor: default; }
+
+.text-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; text-decoration: underline; text-decoration-color: rgba(154, 106, 28, 0.5); text-underline-offset: 4px; min-height: 40px; }
+.text-link:hover { text-decoration-color: currentColor; }
+
+.email { display: inline-flex; align-items: center; gap: 0.35rem; }
+.email-link { display: inline-flex; align-items: center; gap: 0.45rem; font-weight: 700; text-decoration: none; min-height: 40px; }
+.email-text { overflow-wrap: anywhere; } /* si no cabe, se parte antes de la @ (ver EmailText) */
+.email-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.email .icon-btn { width: 34px; height: 34px; }
+
+/* ---------- Barra superior ---------- */
+.skip { position: absolute; left: 1rem; top: -100px; background: var(--ink); color: var(--paper); padding: 0.6rem 1rem; border-radius: 10px; z-index: 100; font-weight: 800; }
+.skip:focus { top: 0.6rem; }
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  background: var(--topbar-bg);
+  /* Solo la propiedad estándar: la compilación añade la de Safari (-webkit-). Escrita a mano después de
+     la estándar, la compilación se quedaba solo con la de Safari y Chrome perdía el desenfoque. */
+  backdrop-filter: var(--topbar-blur);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 10px 30px -18px rgba(20, 29, 54, 0.35);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s;
+}
+.topbar.is-hidden { transform: translateY(-105%); visibility: hidden; transition: transform 0.3s ease, visibility 0s 0.3s; }
+.topbar-inner { max-width: 1280px; margin: 0 auto; height: var(--topbar); padding: 0 1rem; display: flex; align-items: center; gap: 1rem; }
+.brand { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; min-width: 0; }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--night); color: var(--gold); font-family: var(--serif); font-weight: 700; flex: none; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.brand-text strong { font-family: var(--serif); font-size: 1.05rem; white-space: nowrap; }
+.brand-text span { font-size: 0.74rem; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topnav { display: flex; gap: 1.2rem; margin-left: auto; }
+.topnav a { text-decoration: none; font-weight: 700; font-size: 0.92rem; color: var(--ink-soft); padding: 0.4rem 0; position: relative; }
+.topnav a:hover { color: var(--ink); }
+.topnav a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 2px; background: var(--gold); transition: right 0.25s; }
+.topnav a:hover::after { right: 0; }
+.top-actions { display: flex; align-items: center; gap: 0.5rem; }
+.top-actions .btn { min-height: 38px; padding: 0.35rem 0.85rem; font-size: 0.85rem; }
+.top-actions .text-link { font-size: 0.9rem; }
+.top-actions .lang { margin-left: 0.2rem; }
+.menu-btn { display: none; }
+.mobile-menu { border-top: 1px solid var(--line); padding: 0.8rem 1rem 1.1rem; background: var(--paper); }
+.mobile-menu nav { display: grid; gap: 0.15rem; }
+.mobile-menu nav a { text-decoration: none; font-weight: 700; padding: 0.7rem 0.2rem; border-bottom: 1px solid var(--line); }
+.mobile-menu-actions { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; margin-top: 0.8rem; }
+
+@media (max-width: 1240px) { .brand-text { display: none; } }
+@media (max-width: 1100px) { .topnav { display: none; } .top-actions { margin-left: auto; } }
+.topnav a, .top-actions > * { white-space: nowrap; }
+@media (max-width: 1100px) {
+  .desk-only { display: none; }
+  .menu-btn { display: inline-grid; }
+}
+@media (min-width: 1101px) { .mobile-menu { display: none; } }
+@media (max-width: 560px) {
+  .brand-text { display: none; }
+  .top-actions { gap: 0.35rem; }
+  .top-actions .btn { padding: 0.3rem 0.65rem; font-size: 0.8rem; }
+  .top-actions .btn svg { display: none; }
+}
+@media (max-width: 900px) { .top-actions .btn small { display: none; } .u-label { font-size: 0.72rem; padding: 0.18rem 0.55rem 0.18rem 0.4rem; } }
+
+/* ---------- Encabezado / perfil ---------- */
+.hero {
+  max-width: 1180px; margin: 0 auto; padding: clamp(2rem, 5vw, 4.5rem) 1.25rem clamp(1.8rem, 4vw, 3.2rem);
+  display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2rem; align-items: center;
+}
+.hero h1 { font-size: clamp(2.6rem, 6.5vw, 4.6rem); font-weight: 600; letter-spacing: -0.02em; }
+.hero-title { font-size: clamp(1.05rem, 2.2vw, 1.3rem); font-weight: 700; color: var(--ink-soft); margin-top: 0.6rem; }
+.hero-value { font-family: var(--serif); font-size: clamp(1.1rem, 2vw, 1.3rem); line-height: 1.5; max-width: 50ch; margin-top: 1rem; }
+.facts { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.2rem; }
+.facts li { font-size: 0.85rem; font-weight: 700; padding: 0.3rem 0.8rem; border-radius: 999px; background: var(--paper-3); border: 1px solid var(--line); }
+.facts li::before { content: "✦"; color: var(--gold); margin-right: 0.4rem; }
+.hero-contact { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1.3rem; margin-top: 1.3rem; }
+/* Una sola fila: «Explorar» y los dos CV (los CV se mantienen juntos si la fila no cabe). */
+.hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; margin-top: 1.2rem; }
+.hero-cv { display: flex; gap: 0.6rem; }
+.hero-actions .btn { min-width: 0; }
+.hero-video svg { color: var(--gold-deep); }
+.hero-tools { grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: center; gap: 0.6rem; margin: -0.6rem 0 -0.4rem; }
+.hero-art { margin: 0; }
+.hero-art svg { width: 100%; height: auto; max-width: 440px; margin-inline: auto; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-art svg { animation: float 9s ease-in-out infinite; }
+}
+@keyframes float { 50% { transform: translateY(-10px) rotate(-1deg); } }
+/* Ventana mediana (portátil pequeño o tableta apaisada): la ilustración cede sitio
+   para que «Explorar» y los dos CV sigan cabiendo en una sola fila. */
+@media (min-width: 861px) and (max-width: 1199px) {
+  .hero { grid-template-columns: minmax(0, 1fr) 300px; }
+}
+@media (max-width: 860px) {
+  .hero { grid-template-columns: minmax(0, 1fr); padding-top: 1rem; }
+  .hero-tools { order: -2; margin: 0 0 0.2rem; }
+  .hero-art { order: -1; max-width: 170px; margin: -1rem auto -1.2rem; }
+}
+@media (max-width: 480px) {
+  .hero-actions .btn-lg, .hero-cv { width: 100%; }
+  /* Mitades iguales mientras quepan enteros, icono incluido (el relleno lateral corto solo se nota cuando
+     van justos: el contenido va centrado); si no caben (en inglés a 360 px o menos), cada CV en su fila. */
+  .hero-cv { flex-wrap: wrap; }
+  .hero-cv .btn { flex: 1 1 0; min-width: max-content; padding-inline: 0.3rem; font-size: 0.88rem; }
+  .hero-actions .btn small { display: none; }
+}
+/* Celulares de 360 a 380 px: con la letra apenas más chica, «Résumé (English)» y «Résumé (Spanish)» siguen
+   cabiendo lado a lado con su icono completo. */
+@media (max-width: 380px) {
+  .hero-cv .btn { font-size: 0.85rem; }
+}
+/* Celulares de 320 px: el correo del encabezado cabe en una línea con la letra apenas más chica. */
+@media (max-width: 340px) {
+  .hero-contact .email-link { font-size: 0.95rem; }
 }
 
-/* -------------------------------
-   Header
---------------------------------*/
-header {
-  background: #f8f9fa; /* blanco hueso (off-white) */
-  border-bottom: 1px solid #e5e7eb;
-  padding: 2rem 1rem 1.2rem 1rem;
-  text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(90deg, #2563eb, #06b6d4);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 0.2rem; /* compacto con las tags */
-}
-
-header .tags {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #6b7280; /* gris elegante */
-  margin-bottom: 1rem; /* separación con nav */
-  line-height: 1.2;
-}
-
-header .contact {
-  font-size: 0.9rem;       /* tamaño pequeño y legible */
-  color: #374151;          /* gris oscuro para texto */
-  margin-top: 0.2rem;      /* espacio ligero con la subtitle */
-  line-height: 1.4;
-  display: flex;
-  justify-content: center; /* centrado horizontal */
-  gap: 0.5rem;             /* espacio entre enlaces */
-  flex-wrap: wrap;          /* si es muy estrecho, los enlaces bajan de línea */
-}
-
-header .contact a {
-  color: #2563eb;           /* azul gradiente principal */
-  text-decoration: none;
-  transition: color 0.3s ease, text-decoration 0.3s ease;
-}
-
-header .contact a:hover {
-  text-decoration: underline;
-  color: #06b6d4;           /* azul secundario al pasar el mouse */
-}
-/* -------------------------------
-   Nav
---------------------------------*/
-nav {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-}
-
-nav a {
-  text-decoration: none;
-  color: #374151;
-  font-weight: 600;
+/* ---------- Universo ---------- */
+.universe {
   position: relative;
-  transition: color 0.3s ease;
+  background: linear-gradient(180deg, #2a3866 0%, var(--night) 22%, var(--night) 100%);
+  color: var(--on-night);
+  overflow: hidden; /* esquinas rectas: el lienzo 3D va de borde a borde */
+}
+.universe::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 220px; pointer-events: none;
+  background: radial-gradient(60% 100% at 50% 0%, rgba(243, 206, 140, 0.18), transparent 70%);
+}
+.universe-head { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 3rem 1.25rem 1.2rem; }
+.universe .eyebrow { color: var(--gold); }
+.universe h2 { font-size: clamp(1.9rem, 4vw, 2.8rem); }
+.universe-sub { color: var(--on-night-soft); max-width: 60ch; margin-top: 0.5rem; }
+.universe-tools { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+.universe .chip-btn { background: rgba(255, 255, 255, 0.06); border-color: rgba(243, 234, 214, 0.25); color: var(--on-night); }
+.universe .chip-btn:hover:not(:disabled) { border-color: var(--on-night); }
+.universe .chip-btn.is-on { background: var(--gold); color: var(--on-gold); border-color: var(--gold); }
+
+.universe-stage { position: relative; height: clamp(540px, 82vh, 880px); }
+.universe-canvas { position: absolute; inset: 0; }
+.u-canvas { width: 100% !important; height: 100% !important; touch-action: pan-y; cursor: grab; outline: none; }
+/* Cursor de nave solo al pasar sobre un planeta o su etiqueta (como si el principito fuera a aterrizar);
+   en el resto del lienzo sigue la mano de arrastrar, que es la que invita a girar la vista. */
+.u-canvas.is-over, .u-label { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg transform='rotate(-45 16 16)' stroke='%231f2a44' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M13.5 23 L16 30.5 L18.5 23 Z' fill='%23f6a23a'/%3E%3Cpath d='M13 19 L7.5 25.5 L12.5 24 Z' fill='%23c9455a'/%3E%3Cpath d='M19 19 L24.5 25.5 L19.5 24 Z' fill='%23c9455a'/%3E%3Cpath d='M16 1.5 C21.5 7.5 21.5 17 19.5 23.5 H12.5 C10.5 17 10.5 7.5 16 1.5 Z' fill='%23e2b04a'/%3E%3Ccircle cx='16' cy='12' r='2.7' fill='%23bfe3f7'/%3E%3C/g%3E%3C/svg%3E") 6 6, pointer; }
+.u-canvas.is-dragging { cursor: grabbing; }
+
+.u-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.u-label {
+  position: absolute; left: 0; top: 0; pointer-events: auto;
+  display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.22rem 0.7rem 0.22rem 0.5rem;
+  border-radius: 999px; border: 1px solid rgba(243, 234, 214, 0.28);
+  background: rgba(20, 29, 54, 0.62); color: var(--on-night); backdrop-filter: blur(4px);
+  font-size: 0.78rem; font-weight: 700; white-space: nowrap; will-change: transform;
+  transition: background 0.2s, color 0.2s, opacity 0.3s, border-color 0.2s;
+}
+.u-label-num { font-family: var(--serif); color: var(--gold); font-size: 0.75rem; }
+.u-label.is-hover { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+.u-label.is-hover .u-label-num { color: var(--gold-deep); }
+.u-label.is-active { background: var(--gold); color: var(--on-gold); border-color: var(--gold); }
+.u-label.is-active .u-label-num { color: var(--on-gold); }
+.u-label.is-dim { opacity: 0.45; }
+.u-label.is-covered { opacity: 0; pointer-events: none; } /* bajo la barra, la lista, el zoom o la ficha (V6.17) */
+
+.planet-index { position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); z-index: 3; }
+.planet-index ol { list-style: none; padding: 0; display: grid; gap: 0.15rem; }
+.planet-index button {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%; min-height: 38px;
+  padding: 0.25rem 0.8rem 0.25rem 0.4rem; border-radius: 999px; border: 0; cursor: pointer;
+  background: transparent; color: var(--on-night-soft); font-weight: 700; font-size: 0.88rem; text-align: left;
+  transition: color 0.2s, background 0.2s;
+}
+.planet-index button:hover, .planet-index button:focus-visible { color: var(--on-night); background: rgba(255, 255, 255, 0.07); }
+.planet-index button.is-active { color: var(--on-gold); background: var(--gold); }
+.pi-num { font-family: var(--serif); font-size: 0.8rem; min-width: 1.6rem; text-align: center; color: var(--gold); }
+.planet-index button.is-active .pi-num { color: var(--on-gold); }
+
+.zoom { position: absolute; right: 1.25rem; bottom: 1.25rem; display: grid; gap: 0.4rem; z-index: 3; }
+.zoom .icon-btn { background: rgba(20, 29, 54, 0.6); color: var(--on-night); border-color: rgba(243, 234, 214, 0.3); }
+.zoom .icon-btn:hover { background: rgba(20, 29, 54, 0.9); }
+.universe-hint { position: absolute; left: 50%; bottom: 1.1rem; transform: translateX(-50%); font-size: 0.8rem; color: var(--on-night-soft); white-space: nowrap; pointer-events: none; z-index: 2; }
+.universe-status { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 1rem; z-index: 4; padding: 1rem; color: var(--on-night); }
+.universe-status .row-actions { justify-content: center; }
+.universe-status .btn-secondary { color: var(--on-night); border-color: rgba(243, 234, 214, 0.5); }
+
+.universe-listwrap { max-width: 1180px; margin: 0 auto; padding: 0.5rem 1.25rem 3.5rem; }
+.universe-listwrap .note { background: rgba(255, 255, 255, 0.08); color: var(--on-night); margin-bottom: 1rem; }
+
+@media (max-width: 900px) {
+  .universe-head { padding-top: 2.2rem; }
+  .universe-stage { height: clamp(520px, 78svh, 760px); }
+  .planet-index { top: auto; bottom: 0.7rem; left: 0; right: 0; transform: none; }
+  .planet-index ol { display: flex; gap: 0.35rem; overflow-x: auto; padding: 0.2rem 1rem 0.4rem; scrollbar-width: none; }
+  .planet-index ol::-webkit-scrollbar { display: none; }
+  .planet-index button { background: rgba(20, 29, 54, 0.72); border: 1px solid rgba(243, 234, 214, 0.22); white-space: nowrap; min-height: 44px; }
+  .zoom { bottom: auto; top: 0.8rem; right: 0.8rem; }
+  .universe-hint { display: none; }
 }
 
-nav a:hover {
-  color: #2563eb;
+/* Vista de lista / alternativa sin WebGL */
+.plist { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.pcard {
+  position: relative; display: grid; gap: 0.35rem; width: 100%; height: 100%; text-align: left; cursor: pointer;
+  padding: 1.2rem 1.2rem 1.3rem; border-radius: var(--radius); border: 1px solid rgba(243, 234, 214, 0.18);
+  background: rgba(255, 255, 255, 0.05); color: var(--on-night); transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
-
-nav a::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0%;
-  height: 2px;
-  background: #2563eb;
-  transition: width 0.3s ease;
+.pcard:hover { background: rgba(255, 255, 255, 0.09); transform: translateY(-2px); }
+.pcard.is-active { border-color: var(--gold); }
+.pcard-orb {
+  width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-size: 1.5rem; margin-bottom: 0.3rem;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.55) 0 10%, transparent 11%), radial-gradient(circle at 40% 35%, var(--c) 0 55%, var(--c2) 100%);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.05), 0 0 28px -4px var(--c);
 }
+.pcard-num { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+.pcard-title { font-family: var(--serif); font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
+.pcard-tag { font-size: 0.82rem; color: var(--on-night-soft); font-weight: 700; }
+.pcard-sum { font-size: 0.9rem; color: var(--on-night-soft); }
 
-nav a:hover::after {
-  width: 100%;
-}
-
-
-/* -------------------------------
-   CV Dropdown Agregado el dia 3/16/2026
---------------------------------*/
-.cv-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.cv-button {
-  background: none;
-  border: none;
-  font-weight: 600;
-  color: #374151;
-  cursor: pointer;
-  font-family: inherit;
-  position: relative;
-}
-
-.cv-button:hover {
-  color: #2563eb;
-}
-
-.cv-menu {
-  display: none;
-  position: absolute;
-  top: 30px;
-  right: 0;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  min-width: 160px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+/* ---------- Ficha de proyecto ---------- */
+.sheet {
+  position: fixed; z-index: 40; top: calc(var(--topbar) + 14px); right: 16px; bottom: 16px;
+  width: min(460px, 40vw); display: flex; flex-direction: column;
+  background: var(--paper-3); color: var(--ink); border-radius: 22px; box-shadow: var(--shadow), 0 0 0 1px var(--line);
   overflow: hidden;
-  z-index: 100;
 }
-
-.cv-menu a {
-  display: block;
-  padding: 0.6rem 1rem;
-  text-decoration: none;
-  color: #374151;
-  font-weight: 500;
+/* En la vista 3D de escritorio la ficha se ancla al lienzo, no a la ventana: acompaña
+   al desplazamiento y nunca rebasa el borde superior ni el inferior del escenario. */
+@media (min-width: 960px) {
+  .universe-wrap.is-3d .sheet { position: absolute; top: 14px; right: 16px; bottom: 16px; max-height: none; }
 }
-
-.cv-menu a:hover {
-  background: #f3f4f6;
-  color: #2563eb;
+/* Ventanas de escritorio muy bajas (menos de 566 px): el escenario mide 520 px como mínimo y sobresale de la
+   ventana, así que la ficha, anclada a él, se recorta a lo que cabe bajo la barra (su cuerpo se desplaza por
+   dentro) en vez de perder la fila Anterior/Siguiente por debajo del borde. */
+@media (min-width: 960px) and (max-height: 565px) {
+  .universe-wrap.is-3d:not(.is-fullscreen):not(:fullscreen) .sheet { bottom: auto; height: calc(100vh - var(--topbar) - 30px); }
 }
-
-.cv-dropdown:hover .cv-menu {
-  display: block;
-}
-
-
-
-
-/* -------------------------------
-   Secciones
---------------------------------*/
-section {
-  background: #ffffff; /* blanco puro */
-  padding: 4rem 2rem;
-  max-width: 1100px;
-  margin: 2rem auto;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-h2 {
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  text-align: center;
-  background: linear-gradient(90deg, #2563eb, #06b6d4);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-
-/* ------------------------------- 
-Proyectos 
---------------------------------*/ 
-.proyectos-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem; /* separación entre cards */
-}
-
-.card {
-  display: flex;
-  gap: 1rem;
-  background: #ffffff;
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  margin-top: 1.5rem;
-}
-
-/* Columna izquierda: foto circular del título */
-.card-left {
-  flex: 0 0 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 4px; /* pequeña separación con el texto */
-}
-
-.project-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #2563eb;
-}
-
-/* Columna central: titulo, descripcion, beneficios */
-.card-center {
-  flex: 1;
-}
-
-.card-center h4 {
-  margin: 0;
-  color: #111827;
-  font-size: 1.1rem;
-  display: inline-block;
-}
-
-.card-center p {
-  margin: 0.5rem 0;
-  color: #374151;
-}
-
-.card-center ul {
-  padding-left: 1.2rem;
-  margin: 0;
-  color: #374151;
-}
-
-.card-center ul li {
-  margin-bottom: 0.3rem;
-}
-
-/* Columna derecha: imagen del proyecto */
-.card-right {
-  flex: 0 0 150px;
-  display: flex;
-  align-items: center; /* centra verticalmente con descripcion + beneficios */
-}
-
-.card-right img {
-  width: 100%;
-  border-radius: 12px;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.card-right img:hover {
-  transform: scale(1.05);
-}
-
-/* Responsive */
-@media (max-width: 800px) {
-  .card {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+/* Vista de lista en escritorio: la ficha convive con las tarjetas en vez de taparlas.
+   Comparte la celda de la sección (rejilla superpuesta), se pega bajo la barra mientras la
+   lista se desplaza y nunca sale de la sección; la cabecera y la rejilla le dejan sitio. */
+@media (min-width: 960px) {
+  /* La fila mide su contenido (max-content): en pantalla completa el contenedor tiene alto fijo y,
+     con una fila «auto», la sección quedaría recortada a esa altura y la lista no podría desplazarse. */
+  .universe-wrap:not(.is-3d) { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: max-content; }
+  .universe-wrap:not(.is-3d) > .universe, .universe-wrap:not(.is-3d) > .sheet { grid-area: 1 / 1; }
+  .universe-wrap:not(.is-3d) > .sheet {
+    position: sticky; top: calc(var(--topbar) + 14px); right: auto; bottom: auto;
+    align-self: start; justify-self: end; margin: 14px 16px 16px 0;
+    height: calc(100vh - var(--topbar) - 30px); max-height: none;
   }
-  .card-right {
-    flex: none;
-    width: 80%;
-    margin-top: 1rem;
+  .universe-wrap.is-fullscreen:not(.is-3d) > .sheet, .universe-wrap:fullscreen:not(.is-3d) > .sheet { top: 16px; margin-top: 16px; height: calc(100vh - 32px); }
+  /* Empuje: la cabecera y la rejilla terminan antes de la ficha (su ancho más una separación),
+     calculado desde el bloque centrado de 1180 px; las tarjetas se reacomodan en menos columnas. */
+  .universe-wrap:not(.is-3d).has-sheet .universe-head,
+  .universe-wrap:not(.is-3d).has-sheet .universe-listwrap { padding-right: calc(min(590px, 50vw) - 50vw + min(460px, 40vw) + 44px); }
+  .universe-head, .universe-listwrap { transition: padding-right 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+}
+@media (prefers-reduced-motion: no-preference) { .sheet { animation: sheet-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); } }
+@keyframes sheet-in { from { opacity: 0; transform: translateX(24px); } }
+.sheet::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 120px; pointer-events: none;
+  background: radial-gradient(90% 120% at 10% 0%, color-mix(in srgb, var(--c) 32%, transparent), transparent 70%);
+}
+.sheet-grip { display: none; }
+.sheet-head { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: 0.9rem; align-items: start; padding: 1.2rem 1.2rem 0.8rem; }
+.sheet-orb {
+  width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-size: 1.45rem; color: var(--ink);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.6) 0 10%, transparent 11%), radial-gradient(circle at 40% 35%, var(--c) 0 55%, var(--c2) 100%);
+}
+.sheet-tag { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.sheet-head h2 { font-size: 1.45rem; margin-top: 0.2rem; outline: none; }
+.sheet-body { position: relative; flex: 1; overflow-y: auto; padding: 0.2rem 1.3rem 1.2rem; overscroll-behavior: contain; }
+.sheet-summary { font-size: 1.02rem; }
+.story { font-family: var(--serif); font-style: italic; color: var(--ink-soft); border-left: 3px solid var(--gold); padding-left: 0.8rem; margin-bottom: 0.9rem; }
+.tour-line { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 800; color: var(--gold-deep); margin-bottom: 0.6rem; }
+.video-btn { margin-top: 1rem; }
+.sheet-section { margin-top: 1.3rem; }
+.sheet-section p + p { margin-top: 0.65rem; }
+.sheet-section h3 { font-family: var(--sans); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-deep); margin-bottom: 0.45rem; }
+.ticks { list-style: none; padding: 0; display: grid; gap: 0.4rem; }
+.ticks li { position: relative; padding-left: 1.4rem; }
+.ticks li::before { content: "✦"; position: absolute; left: 0; top: 0; color: var(--gold); font-size: 0.85rem; }
+.tags { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tags li { font-size: 0.82rem; font-weight: 700; padding: 0.22rem 0.7rem; border-radius: 999px; background: var(--paper-2); }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; }
+.gallery img { border-radius: 12px; width: 100%; height: auto; }
+.gallery figcaption { font-size: 0.8rem; color: var(--ink-soft); margin-top: 0.2rem; }
+.link-list { padding-left: 1.1rem; }
+.stack { display: grid; gap: 0.2rem; justify-items: start; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.7rem; }
+.sheet-nav { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.8rem 1rem; border-top: 1px solid var(--line); background: var(--paper-3); }
+.sheet-nav .btn { min-height: 42px; padding: 0.4rem 0.9rem; font-size: 0.88rem; }
+.count { font-weight: 800; color: var(--ink-soft); font-size: 0.88rem; }
+.sheet-ship::before { background: radial-gradient(90% 120% at 10% 0%, rgba(242, 200, 110, 0.4), transparent 70%); }
+
+@media (max-width: 959px) {
+  .sheet {
+    top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: min(62dvh, 620px);
+    border-radius: 24px 24px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  @media (prefers-reduced-motion: no-preference) { .sheet { animation-name: sheet-up; } }
+  .sheet-grip { display: block; flex: none; width: 44px; height: 5px; border-radius: 3px; background: var(--line); margin: 0.55rem auto 0; }
+  .sheet-head { padding-top: 0.6rem; }
+  .sheet-head h2 { font-size: 1.28rem; }
+  /* El pie Anterior/Siguiente más delgado (V6.13): el sitio que gana va al texto del proyecto. */
+  .sheet-nav { padding: 0.5rem 0.9rem; }
+  /* En pantalla completa la ficha deja arriba la escena (unos dos quintos de la pantalla) y puede
+     contraerse a solo el título con el asa. Hasta la V6.12 medía el 44 % y al texto le quedaban 4 o 5
+     líneas en un celular; ahora llega al 60 %. */
+  .universe-wrap.is-fullscreen .sheet, .universe-wrap:fullscreen .sheet { max-height: min(60svh, 600px); }
+  .sheet.is-collapsed .sheet-body, .sheet.is-collapsed .sheet-nav { display: none; }
+  .sheet.is-collapsed { max-height: none; }
+}
+/* Cabecera compacta (V6.13) en las fichas angostas, la del celular vertical y el panel lateral del celular
+   apaisado: el planeta, la etiqueta y la X en una fila y el título debajo, a todo el ancho. Antes el título
+   compartía la columna con la etiqueta y ocupaba 3 a 5 líneas; el sitio que gana va al texto del proyecto.
+   En las fichas anchas (tableta, ventana de 600 a 959 px) el título ya cabe junto al planeta: no cambia. */
+@media (max-width: 599px), (max-width: 959px) and (max-height: 500px) and (orientation: landscape) {
+  .sheet-head {
+    grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "orb tag close" "title title title";
+    column-gap: 0.7rem; row-gap: 0.45rem; align-items: center; padding: 0.35rem 1.1rem 0.7rem;
+  }
+  .sheet-head > div { display: contents; }
+  .sheet-orb { grid-area: orb; width: 40px; height: 40px; font-size: 1.15rem; }
+  .sheet-tag { grid-area: tag; }
+  .sheet-head h2 { grid-area: title; margin-top: 0; }
+  .sheet-close { grid-area: close; }
+}
+/* Celular apaisado (V6.13): una hoja inferior en una pantalla de menos de 500 px de alto dejaba al texto
+   una o dos líneas (ninguna en pantalla completa). Ahí la ficha va a la derecha, de arriba abajo, como en
+   escritorio, y la escena queda a su izquierda: la cámara centra el planeta en ese hueco (Universe.jsx) y
+   los controles del universo se recorren para no quedar debajo. El asa sigue contrayéndola a su título. */
+@media (max-width: 959px) and (max-height: 500px) and (orientation: landscape) {
+  .universe-wrap { --side-sheet: min(400px, 52vw); }
+  .sheet {
+    top: calc(var(--topbar) + 8px); right: 8px; bottom: 8px; left: auto; width: var(--side-sheet); max-height: none;
+    border-radius: 20px; padding-bottom: 0;
+  }
+  .universe-wrap.is-fullscreen .sheet, .universe-wrap:fullscreen .sheet { top: 8px; max-height: none; }
+  .sheet.is-collapsed { bottom: auto; }
+  .sheet-head h2 { font-size: 1.12rem; }
+  @media (prefers-reduced-motion: no-preference) { .sheet { animation-name: sheet-in; } }
+  .universe-wrap.has-sheet .zoom { right: calc(var(--side-sheet) + 1.3rem); }
+  .universe-wrap.has-sheet .universe .universe-head > .universe-tools { max-width: calc(100% - var(--side-sheet) - 2.5rem); }
+}
+@media (max-width: 900px) and (max-height: 500px) and (orientation: landscape) {
+  .universe-wrap.has-sheet .planet-index { right: calc(var(--side-sheet) + 16px); }
+}
+/* Botones + y − con la ficha abierta (V6.16). En escritorio la ficha lateral los tapaba: pasan a la
+   izquierda, en fila, justo encima de la lista de planetas (su alto, --pi-h, lo mide Universe.jsx). En
+   ventanas bajas la lista cede ese renglón para no subir hasta los controles de arriba. Entre 901 y 959 px
+   la ficha es una hoja inferior: van arriba a la derecha, como en celular. En celular no cambia nada. */
+@media (min-width: 960px) {
+  .universe-wrap.has-sheet .zoom { right: auto; left: 1.25rem; bottom: calc(1.25rem + var(--pi-h, 0px) + 0.6rem); grid-auto-flow: column; }
+}
+@media (min-width: 960px) and (max-height: 760px) {
+  .universe-wrap.has-sheet .zoom { bottom: calc(0.6rem + var(--pi-h, 0px) + 0.45rem); }
+  .universe-wrap.has-sheet .planet-index { max-height: calc(100% - 225px - 52px); }
+}
+@media (min-width: 901px) and (max-width: 959px) {
+  .universe-wrap.has-sheet .zoom { bottom: auto; top: calc(var(--topbar) + 1.2rem); }
+  .universe-wrap.is-fullscreen.has-sheet .zoom, .universe-wrap.has-sheet:fullscreen .zoom { top: 1rem; }
+}
+/* El asa como botón: misma línea visual, con zona de toque amplia. */
+/* `flex: none`: la ficha es una columna flex con alto máximo; con los textos largos de los proyectos el
+   cuerpo pedía más de lo que cabe y el asa, sin contenido propio, se encogía a 1–3 px (intocable). */
+.sheet-grip-btn { position: relative; flex: none; width: 100%; height: 26px; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 24px 24px 0 0; }
+.sheet-grip-btn::before { content: ""; position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%); width: 44px; height: 5px; border-radius: 3px; background: var(--line); }
+.sheet-grip-btn:active::before { background: var(--ink-soft); }
+@keyframes sheet-up { from { opacity: 0; transform: translateY(40px); } }
+
+/* ---------- Reproductor ---------- */
+.video-modal { border: 0; padding: 0; background: transparent; max-width: none; max-height: none; width: 100%; height: 100%; display: grid; place-items: center; }
+.video-modal:not([open]) { display: none; }
+.video-modal::backdrop { background: rgba(10, 15, 32, 0.78); backdrop-filter: blur(3px); }
+.video-box { width: min(980px, calc(100vw - 2rem)); background: var(--night); color: var(--on-night); border-radius: 20px; padding: 0.9rem; box-shadow: var(--shadow); }
+.video-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.2rem 0.3rem 0.8rem; }
+.video-head h2 { font-size: 1.1rem; }
+.video-frame { position: relative; aspect-ratio: 16 / 9; max-height: calc(100dvh - 170px); background: #0b1022; border-radius: 12px; overflow: hidden; margin-inline: auto; }
+.video-frame video, .video-frame iframe { width: 100%; height: 100%; border: 0; background: #000; }
+.video-status { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 0.6rem; text-align: center; color: var(--on-night-soft); pointer-events: none; }
+.video-status.is-error { pointer-events: auto; background: #0b1022; color: var(--on-night); z-index: 2; }
+.video-foot { font-size: 0.85rem; color: var(--on-night-soft); padding: 0.7rem 0.3rem 0.1rem; }
+.video-foot .text-link, .video-status .text-link { color: var(--gold); }
+
+/* ---------- Visor de evidencias (V6.8) ----------
+   Imágenes y videos de la ficha en un carrusel sobre la página (misma ventana oscura que el
+   reproductor). La ventana y el escenario tienen una altura fija que depende de la pantalla: la
+   imagen o el video se encajan dentro y nada salta al pasar de una imagen apaisada a una vertical
+   o a un pie de foto más largo. En escritorio las flechas van a los lados; en pantallas estrechas,
+   debajo. Si algo no cupiera (un pie muy largo en un celular apaisado), la ventana se desplaza. */
+.evidence-actions { margin-top: 0; }
+.evidence-box { --stage-h: clamp(180px, calc(100dvh - 230px), 760px); width: min(1120px, calc(100vw - 1.5rem)); height: min(calc(100dvh - 1.5rem), 990px); overflow: auto; }
+.evidence-head { align-items: center; gap: 0.8rem; }
+.evidence-head h2 { flex: 1; min-width: 0; }
+.evidence-count { font-weight: 800; font-size: 0.9rem; color: var(--on-night-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.evidence-stage { display: grid; grid-template-areas: "prev view next"; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.6rem; touch-action: pan-y; }
+.evidence-view { grid-area: view; min-width: 0; height: var(--stage-h); }
+.evidence-arrow { width: 44px; height: 44px; background: rgba(243, 234, 214, 0.08); color: var(--on-night); border-color: rgba(243, 234, 214, 0.3); }
+.evidence-arrow:hover { background: rgba(243, 234, 214, 0.18); border-color: var(--on-night-soft); }
+.evidence-arrow.is-prev { grid-area: prev; }
+.evidence-arrow.is-next { grid-area: next; }
+.evidence-frame { margin: 0; height: var(--stage-h); display: grid; grid-template-columns: 100%; grid-template-rows: 100%; place-items: center; background: #0b1022; border-radius: 12px; overflow: hidden; }
+/* Medidas definidas (no %): un max-height en porcentaje dentro de una fila automática no se resuelve y la imagen se recortaba. */
+.evidence-frame img { display: block; max-width: 100%; max-height: var(--stage-h); width: auto; height: auto; object-fit: contain; user-select: none; }
+.evidence-view .video-frame { height: 100%; max-height: none; aspect-ratio: auto; }
+.evidence-caption { font-size: 0.9rem; color: var(--on-night-soft); text-align: center; padding: 0.7rem 0.3rem 0.1rem; }
+.evidence-box .video-foot { text-align: center; }
+/* Modelo 3D (V6.16): el lienzo llena el escenario; mientras carga se ve la imagen fija detrás. La
+   etiqueta de demostración va siempre arriba y la pista «Arrastra…» desaparece al primer giro. */
+.model-frame { position: relative; height: var(--stage-h); background: #0b1022; border-radius: 12px; overflow: hidden; }
+.model-canvas { position: relative; display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.model-canvas:active { cursor: grabbing; }
+.model-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0.5; pointer-events: none; user-select: none; }
+.model-frame.is-error .model-poster { opacity: 0.85; }
+.model-badge { position: absolute; top: 0.6rem; left: 0.6rem; max-width: calc(100% - 1.2rem); margin: 0; padding: 0.22rem 0.65rem; border-radius: 999px; background: rgba(11, 16, 34, 0.72); border: 1px solid rgba(242, 200, 110, 0.55); color: var(--gold); font-size: 0.76rem; font-weight: 800; line-height: 1.35; pointer-events: none; }
+.model-hint { position: absolute; bottom: 0.6rem; left: 50%; transform: translateX(-50%); margin: 0; padding: 0.22rem 0.75rem; border-radius: 999px; background: rgba(11, 16, 34, 0.72); color: var(--on-night-soft); font-size: 0.8rem; white-space: nowrap; pointer-events: none; }
+.model-status { position: absolute; inset: auto 0.6rem 0.7rem; margin: 0; text-align: center; color: var(--on-night-soft); font-size: 0.86rem; pointer-events: none; }
+.model-status.is-error { color: var(--on-night); }
+@media (max-width: 700px) {
+  /* V6.17: escenario más alto en celulares altos (antes, tope de 75vw): las capturas verticales de MealFlow y
+     del hospital se veían chicas con mucho espacio vacío debajo. Los 330 px dejan sitio al título, las flechas
+     y un pie largo; en celulares bajos (320×568) el escenario queda como estaba. */
+  .evidence-box { --stage-h: clamp(140px, min(calc(100dvh - 330px), 115vw), 760px); height: calc(100dvh - 1rem); padding: 0.6rem; border-radius: 16px; }
+  .evidence-head { padding: 0.1rem 0.2rem 0.6rem; }
+  .evidence-head h2 { font-size: 0.98rem; }
+  .evidence-stage { grid-template-areas: "view view" "prev next"; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .evidence-arrow.is-prev { justify-self: start; }
+  .evidence-arrow.is-next { justify-self: end; }
+}
+@media (min-width: 701px) and (max-height: 520px) {
+  .evidence-box { --stage-h: clamp(140px, calc(100dvh - 215px), 760px); height: calc(100dvh - 1rem); padding: 0.6rem; }
+}
+/* Celulares muy estrechos (≤ 380 px): los títulos largos de los proyectos ocupaban 5 líneas en la ficha y
+   3 en el visor, y un pie de 8 líneas quedaba cortado unos píxeles bajo el borde de la ventana. */
+@media (max-width: 380px) {
+  .sheet-head h2 { font-size: 1.12rem; }
+  .evidence-head h2 { font-size: 0.9rem; }
+  .evidence-caption { font-size: 0.84rem; line-height: 1.4; padding-top: 0.5rem; }
 }
 
-.btn-link {
-  display: inline-block;
-  padding: 0.6rem 1.2rem;
-  background: #2563eb;
-  color: #fff;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background 0.3s ease;
+/* ---------- Contacto ---------- */
+.footer { background: var(--night); color: var(--on-night); position: relative; overflow: hidden; }
+.footer::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.6;
+  background-image: radial-gradient(1.5px 1.5px at 12% 30%, #f3ead6 50%, transparent 51%), radial-gradient(1px 1px at 38% 70%, #f3ead6 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 66% 22%, #f2c86a 50%, transparent 51%), radial-gradient(1px 1px at 84% 64%, #f3ead6 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 18%, #f3ead6 50%, transparent 51%), radial-gradient(1.5px 1.5px at 24% 86%, #f2c86a 50%, transparent 51%);
+}
+.footer-inner { position: relative; max-width: 1000px; margin: 0 auto; padding: 3.5rem 1.25rem 2.5rem; text-align: center; }
+.footer .eyebrow { color: var(--gold); }
+.footer h2 { font-size: clamp(1.7rem, 3.5vw, 2.4rem); }
+.footer-actions { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.6rem 1.4rem; margin-top: 1.2rem; }
+.footer .icon-btn { background: transparent; color: var(--on-night); border-color: rgba(243, 234, 214, 0.3); }
+.footer .btn-secondary { color: var(--on-night); border-color: rgba(243, 234, 214, 0.5); }
+.footer .btn-primary { background: var(--gold); color: var(--on-gold); }
+.foot { margin-top: 2.5rem; font-size: 0.84rem; color: var(--on-night-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
-.btn-link:hover {
-  background: #1d4ed8;
+/* Escritorio: el título del universo flota sobre el cielo y el escenario ocupa la pantalla */
+@media (min-width: 901px) {
+  .universe.is-3d .universe-head { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; padding-top: calc(var(--topbar) + 1.2rem); }
+  .universe.is-3d .universe-head > * { pointer-events: auto; max-width: 560px; }
+  .universe.is-3d .universe-head > .universe-tools { max-width: 900px; }
+  .universe.is-3d .universe-head h2 { font-size: clamp(1.9rem, 3.2vw, 2.6rem); }
+  .universe.is-3d .universe-stage { height: max(640px, calc(100vh - var(--topbar))); }
+  .planet-index { top: auto; bottom: 1.25rem; transform: none; }
+  .planet-index ol { background: rgba(20, 29, 54, 0.45); backdrop-filter: blur(6px); border-radius: 22px; padding: 0.5rem; border: 1px solid rgba(243, 234, 214, 0.12); }
+}
+/* Los controles flotan sobre el cielo: un poco más opacos y con desenfoque, para que las etiquetas
+   de los planetas que pasen por detrás no se lean a través de los botones (sin -webkit- a mano: ver .topbar). */
+@media (min-width: 901px) {
+  .universe.is-3d .universe-tools .chip-btn:not(.is-on) { background: rgba(20, 29, 54, 0.42); backdrop-filter: blur(6px); }
+}
+/* Escritorio con ventana baja (portátiles de 768 px): no hay alto para el título, los controles y la
+   columna de planetas a tamaño normal. El escenario se ajusta a lo que queda bajo la barra para que
+   entre completo (la escena 3D compensa el alto y se ve del mismo tamaño que a 640 px, ver
+   `goalPose` en UniverseScene.js) y la columna se compacta (y se desplaza si ni así cabe). */
+@media (min-width: 901px) and (max-height: 760px) {
+  .universe.is-3d .universe-stage { height: max(520px, calc(100vh - var(--topbar))); }
+  /* La lista sigue siendo la columna de siempre, pero compacta, para que quede por debajo de los
+     controles; si aun así no cabe (ventanas muy bajas), se desplaza verticalmente dentro de su cápsula. */
+  .universe.is-3d .universe-head { padding-top: calc(var(--topbar) + 0.4rem); }
+  .universe.is-3d .universe-head h2 { font-size: clamp(1.5rem, 2.4vw, 1.9rem); margin-bottom: 0.2rem; }
+  .universe.is-3d .universe-sub { font-size: 0.92rem; margin-top: 0.25rem; }
+  .universe.is-3d .universe-tools { margin-top: 0.8rem; }
+  .universe.is-3d .universe-head .eyebrow { margin-bottom: 0.35rem; }
+  .planet-index { bottom: 0.6rem; max-height: calc(100% - 225px); overflow-y: auto; scrollbar-width: none; border-radius: 22px; }
+  .planet-index::-webkit-scrollbar { display: none; }
+  .planet-index ol { gap: 0.1rem; padding: 0.3rem; }
+  .planet-index button { min-height: 27px; padding: 0.1rem 0.7rem 0.1rem 0.35rem; gap: 0.45rem; font-size: 0.8rem; }
+  .universe-hint { display: none; }
 }
 
-
-
-
-/* -------------------------------
-   Video
---------------------------------*/
-.video-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 2rem;
+@media (min-width: 901px) {
+  .universe.is-3d .universe-head h2, .universe.is-3d .universe-head .universe-sub, .universe.is-3d .universe-head .eyebrow { transition: opacity 0.4s; }
+  .universe.is-3d.is-focused .universe-head h2, .universe.is-3d.is-focused .universe-head .universe-sub, .universe.is-3d.is-focused .universe-head .eyebrow { opacity: 0; visibility: hidden; height: 0; margin: 0; }
 }
 
-iframe {
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-  max-width: 100%;
+/* ---------- Idioma y música ---------- */
+.lang { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; padding: 2px; background: var(--paper-3); }
+.lang button { min-width: 36px; height: 30px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-soft); font-weight: 800; font-size: 0.78rem; letter-spacing: 0.04em; cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--paper-3); }
+.lang button:focus-visible { outline-offset: 0; }
+
+.music { position: relative; display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: 999px; background: var(--paper-3); color: var(--ink); height: 36px; }
+.music-btn { display: inline-flex; align-items: center; gap: 0.5rem; height: 100%; padding: 0 0.85rem 0 0.7rem; border: 0; border-radius: 999px; background: transparent; cursor: pointer; font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
+.music.is-compact .music-btn { padding: 0 0.6rem; }
+.music.is-playing { border-color: var(--music-on-border); background: var(--music-on-bg); }
+.music.is-error { padding: 0 0.7rem; color: var(--ink-soft); font-size: 0.82rem; gap: 0.4rem; }
+.meter { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+.meter i { display: block; width: 3px; height: 4px; border-radius: 2px; background: var(--gold-deep); transform-origin: bottom; }
+.music.is-playing .meter i { background: var(--gold-deep); animation: eq 1.1s ease-in-out infinite; }
+.music.is-playing .meter i:nth-child(2) { animation-delay: -0.3s; }
+.music.is-playing .meter i:nth-child(3) { animation-delay: -0.6s; }
+.music.is-playing .meter i:nth-child(4) { animation-delay: -0.15s; }
+.music.is-silent .meter i { background: var(--ink-soft, currentColor); opacity: 0.45; }
+.music-text { display: inline-grid; }
+.music-text > span { grid-area: 1 / 1; }
+.music-text > span.is-off { visibility: hidden; }
+@keyframes eq { 0%, 100% { height: 4px; } 50% { height: 14px; } }
+.music-vol { display: inline-flex; align-items: center; gap: 0.4rem; width: 0; overflow: hidden; opacity: 0; transition: width 0.25s ease, opacity 0.2s ease, padding 0.25s ease; padding: 0; }
+.music:hover .music-vol, .music:focus-within .music-vol { width: 116px; opacity: 1; padding-right: 0.7rem; }
+.music-vol input[type="range"] { width: 76px; accent-color: var(--gold-deep); cursor: pointer; margin: 0; }
+.music-vol svg { flex: none; color: var(--ink-soft); }
+@media (pointer: coarse), (max-width: 900px) {
+  .music-vol { display: none; }
+  .music:hover .music-vol, .music:focus-within .music-vol { width: 0; padding: 0; }
+}
+.universe .music, .universe .lang { background: rgba(20, 29, 54, 0.6); border-color: rgba(243, 234, 214, 0.3); color: var(--on-night); }
+
+/* ---------- Pantalla completa del universo ---------- */
+.universe-wrap { position: relative; outline: none; }
+.universe-wrap.is-fullscreen, .universe-wrap:fullscreen {
+  position: fixed; inset: 0; z-index: 70; background: var(--night); overflow: auto; width: 100%; height: 100%;
+}
+.universe-wrap.is-fullscreen .universe, .universe-wrap:fullscreen .universe { border-radius: 0; min-height: 100%; }
+.universe-wrap.is-fullscreen .universe.is-3d, .universe-wrap:fullscreen .universe.is-3d { height: 100%; }
+.universe-wrap.is-fullscreen .universe.is-3d .universe-stage, .universe-wrap:fullscreen .universe.is-3d .universe-stage { position: absolute; inset: 0; height: auto; }
+.universe-wrap.is-fullscreen .universe.is-3d .universe-head, .universe-wrap:fullscreen .universe.is-3d .universe-head {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 3; pointer-events: none; padding-top: 1rem;
+}
+.universe-wrap.is-fullscreen .universe.is-3d .universe-head > *, .universe-wrap:fullscreen .universe.is-3d .universe-head > * { pointer-events: auto; }
+.universe-wrap.is-fullscreen .universe.is-3d .universe-head h2, .universe-wrap:fullscreen .universe.is-3d .universe-head h2,
+.universe-wrap.is-fullscreen .universe.is-3d .universe-sub, .universe-wrap:fullscreen .universe.is-3d .universe-sub,
+.universe-wrap.is-fullscreen .universe.is-3d .universe-head .eyebrow, .universe-wrap:fullscreen .universe.is-3d .universe-head .eyebrow { display: none; }
+@media (min-width: 960px) {
+  .universe-wrap.is-fullscreen .sheet, .universe-wrap:fullscreen .sheet { top: 16px; }
+}
+.fs-hint { font-size: 0.78rem; color: var(--on-night-soft); margin-top: 0.5rem; }
+.fs-icon { display: none; }
+@media (max-width: 900px) {
+  .universe-tools .fs-btn { display: none; }
+  .fs-icon { display: inline-grid; }
+  .universe-wrap.is-fullscreen .universe.is-3d .universe-head, .universe-wrap:fullscreen .universe.is-3d .universe-head { padding: 0.8rem 0.8rem 0; }
+  .universe-wrap.is-fullscreen .universe-tools, .universe-wrap:fullscreen .universe-tools { margin-top: 0; max-width: calc(100% - 56px); }
+  .universe-wrap.is-fullscreen .universe-tools .chip-btn, .universe-wrap:fullscreen .universe-tools .chip-btn { min-height: 36px; padding: 0.3rem 0.75rem; font-size: 0.8rem; }
 }
 
+/* ---------- Páginas propias (hoy, la del video): dejan sitio a la barra fija ---------- */
+.page-plain { padding-top: var(--topbar); min-height: calc(100vh - 320px); }
+.page-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.6rem; }
 
+/* ---------- Navegación del pie ---------- */
+.footer-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 1.6rem; margin-top: 2rem; padding-top: 1.4rem; border-top: 1px solid rgba(243, 234, 214, 0.14); }
+.footer-nav a { color: var(--on-night-soft); text-decoration: none; font-weight: 700; font-size: 0.9rem; min-height: 40px; display: inline-flex; align-items: center; }
+.footer-nav a:hover { color: var(--on-night); text-decoration: underline; text-underline-offset: 4px; }
 
-/* -------------------------------
-   Footer
---------------------------------*/
-footer {
-  text-align: center;
-  padding: 2rem 1rem;
-  background: #ffffff;
-  color: #6b7280;
-  font-size: 0.9rem;
-  border-top: 1px solid #e5e7eb;
+/* ---------- Página del video (/video) ---------- */
+.videopage { max-width: 1000px; margin: 0 auto; padding: clamp(3rem, 7vw, 5.5rem) 1.25rem; }
+.videopage h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); margin-bottom: 0.4rem; }
+.videopage-sub { color: var(--ink-soft); max-width: 60ch; }
+.videopage-player { margin-top: 1.6rem; background: var(--night); color: var(--on-night); border-radius: 20px; padding: 0.9rem; box-shadow: var(--shadow); }
+.videopage-player .video-frame { max-height: none; }
+.videopage .note { margin-top: 1.4rem; }
+
+/* ---------- Asistente de contacto (prototipo con respuestas de demostración) ----------
+   Un panel compacto en la esquina inferior (en móvil, una hoja inferior de media pantalla) que se
+   contrae en una hadita. Misma tinta, papel, oro y sombra que la ficha de los proyectos. Va por encima
+   de la ficha (40) y por debajo de la barra (50) y de la pantalla completa del universo (70). */
+.assistant-panel {
+  position: fixed; z-index: 45;
+  right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: min(360px, calc(100vw - 32px));
+  height: min(480px, calc(100vh - var(--topbar) - 28px));
+  height: min(480px, calc(100dvh - var(--topbar) - 28px));
+  min-height: 280px;
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--paper-3); color: var(--ink); border-radius: 22px;
+  box-shadow: var(--shadow), 0 0 0 1px var(--line);
+  /* Crece desde la hadita y vuelve a ella al contraerse. */
+  transform-origin: calc(100% - 29px) calc(100% - 29px);
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.22s ease, visibility 0s;
+}
+.assistant-panel:not(.is-open) {
+  visibility: hidden; opacity: 0; transform: scale(0.14); pointer-events: none;
+  transition: transform 0.24s cubic-bezier(0.5, 0, 0.75, 0.2), opacity 0.2s ease 0.04s, visibility 0s 0.24s;
+}
+.assistant-panel:focus { outline: none; }
+
+.assistant-head {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.7rem;
+  padding: 0.75rem 0.75rem 0.7rem 0.9rem; border-bottom: 1px solid var(--line);
+  background: radial-gradient(90% 160% at 0% 0%, rgba(226, 176, 74, 0.16), transparent 70%);
+}
+.assistant-avatar {
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 40%, #2a3866 0%, var(--night) 72%); box-shadow: 0 0 0 3px rgba(226, 176, 74, 0.14);
+}
+.assistant-avatar .fairy { width: 31px; height: 31px; }
+.assistant-title { font-size: 1.05rem; line-height: 1.2; display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem 0.45rem; }
+.assistant-badge {
+  font-family: var(--sans); font-size: 0.64rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1;
+  padding: 0.22rem 0.45rem; border-radius: 999px; color: var(--gold-deep); border: 1px solid currentColor;
+}
+.assistant-sub { font-size: 0.78rem; line-height: 1.3; color: var(--ink-soft); margin-top: 0.1rem; }
+.assistant-min { width: 36px; height: 36px; }
+
+.assistant-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.assistant-log { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0.85rem 0.85rem 0.6rem; scrollbar-width: thin; }
+.assistant-log:focus-visible { outline-offset: -3px; }
+/* Siempre desplazable (1 px de más): así la rueda o el dedo sobre la conversación nunca mueven la página. */
+.assistant-feed { min-height: calc(100% + 1px); display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+
+.msg { max-width: 90%; padding: 0.55rem 0.8rem; border-radius: 16px; font-size: 0.92rem; line-height: 1.5; overflow-wrap: anywhere; }
+.msg-bot { background: var(--paper-2); border-top-left-radius: 5px; }
+.msg-me { align-self: flex-end; background: var(--ink); color: var(--paper-3); border-top-right-radius: 5px; white-space: pre-wrap; }
+.msg p + p, .msg p + ul, .msg ul + p { margin-top: 0.35rem; }
+.msg ul { list-style: none; padding: 0; display: grid; gap: 0.15rem; }
+.msg li { position: relative; padding-left: 1.15rem; }
+.msg li::before { content: "✦"; position: absolute; left: 0; top: 0; color: var(--gold-deep); font-size: 0.78rem; }
+.msg-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
+.msg-typing { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.8rem 0.9rem; }
+.msg-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-soft); opacity: 0.4; }
+@media (prefers-reduced-motion: no-preference) {
+  .msg { animation: msg-in 0.25s ease both; }
+  .msg-typing i { animation: assistant-typing 1.1s ease-in-out infinite; }
+  .msg-typing i:nth-child(2) { animation-delay: 0.15s; }
+  .msg-typing i:nth-child(3) { animation-delay: 0.3s; }
+}
+@keyframes msg-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes assistant-typing { 30% { opacity: 1; transform: translateY(-2px); } 60% { opacity: 0.4; transform: none; } }
+
+.assistant-chip {
+  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 36px; padding: 0.35rem 0.8rem;
+  border-radius: 999px; border: 1.5px solid var(--line); background: var(--paper-3); color: var(--ink);
+  font: inherit; font-weight: 700; font-size: 0.84rem; line-height: 1.25; text-align: left; text-decoration: none; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.assistant-chip:hover { border-color: var(--ink-soft); background: var(--wash); }
+.assistant-chip svg { width: 16px; height: 16px; flex: none; }
+.assistant-chip.is-action { border-color: var(--btn2-border); }
+.assistant-chip.is-unavailable { border-style: dashed; opacity: 0.7; cursor: not-allowed; }
+.assistant-chip small { font-weight: 600; opacity: 0.8; }
+.assistant-suggest { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.1rem; }
+.assistant-suggest .assistant-chip { border-color: rgba(226, 176, 74, 0.65); }
+
+/* Confirmación discreta (correo copiado): una píldora que aparece un momento sobre el campo de texto. */
+.assistant-toast {
+  position: absolute; z-index: 1; bottom: 0.6rem; left: 50%; transform: translate(-50%, 6px);
+  display: inline-flex; align-items: center; gap: 0.4rem; max-width: calc(100% - 1.5rem); white-space: nowrap;
+  padding: 0.3rem 0.85rem; border-radius: 999px; background: var(--paper-3); color: var(--ink); border: 1px solid var(--line);
+  font-size: 0.8rem; font-weight: 700; box-shadow: 0 8px 22px -12px rgba(20, 29, 54, 0.55); pointer-events: none;
+  opacity: 0; visibility: hidden; transition: opacity 0.25s, transform 0.25s, visibility 0s 0.25s;
+}
+.assistant-toast.is-shown { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity 0.25s, transform 0.25s, visibility 0s; }
+.assistant-toast.is-error { border-color: var(--rose); }
+.assistant-toast svg { flex: none; width: 15px; height: 15px; color: var(--sage); }
+
+.assistant-form { display: flex; align-items: flex-end; gap: 0.5rem; padding: 0.6rem 0.7rem 0.7rem; border-top: 1px solid var(--line); }
+.assistant-input {
+  flex: 1; min-width: 0; display: block; resize: none; height: 44px; min-height: 44px; max-height: 132px; overflow-y: auto;
+  padding: 0.6rem 0.95rem; border-radius: 22px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink);
+  font: inherit; font-size: 1rem; line-height: 1.4; /* 16 px: en iPhone no hace zoom al escribir */
+}
+.assistant-input::placeholder { color: var(--ink-soft); opacity: 0.85; }
+.assistant-input:hover { border-color: var(--ink-soft); }
+.assistant-input:focus-visible { outline-offset: 1px; }
+.assistant-send {
+  flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer;
+  background: var(--gold); color: var(--on-gold); box-shadow: 0 8px 18px -10px rgba(154, 106, 28, 0.9);
+  transition: background 0.2s, opacity 0.2s, transform 0.15s;
+}
+.assistant-send:hover:not(:disabled) { background: #ecc066; transform: translateY(-1px); }
+.assistant-send:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+
+/* La hadita: la conversación contraída. Sube lo justo para no tapar un control que quede debajo
+   (--lift) o se aparta mientras no haya sitio (data-away); ver useAssistantDock. Se puede arrastrar a
+   otro sitio con el dedo o el ratón (--dx, --dy desde su esquina; ver useBubbleDrag): touch-action: none
+   para que el dedo la mueva a ella y no a la página. Sus estados van en atributos data-* (placed, side,
+   dragging, away) porque la clase la escribe React. */
+.assistant-bubble {
+  position: fixed; z-index: 45;
+  right: calc(18px + env(safe-area-inset-right, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  width: 54px; height: 54px; padding: 0; border-radius: 50%; display: grid; place-items: center; cursor: grab;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  background: radial-gradient(circle at 50% 40%, #2a3866 0%, #141d36 72%); border: 1.5px solid rgba(243, 234, 214, 0.32);
+  box-shadow: 0 10px 26px -12px rgba(20, 29, 54, 0.7), 0 0 0 4px rgba(226, 176, 74, 0.12);
+  transform: translate(var(--dx, 0px), calc(var(--dy, 0px) - var(--lift, 0px)));
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) 0.08s, opacity 0.2s ease 0.08s, visibility 0s, box-shadow 0.2s;
+}
+.assistant-bubble:hover { box-shadow: 0 12px 28px -12px rgba(20, 29, 54, 0.75), 0 0 0 5px rgba(226, 176, 74, 0.24); }
+/* Mientras se arrastra sigue al puntero sin transición, un poco más grande y con más sombra. */
+.assistant-bubble[data-dragging] {
+  cursor: grabbing; transition: none;
+  transform: translate(var(--dx, 0px), calc(var(--dy, 0px) - var(--lift, 0px))) scale(1.08);
+  box-shadow: 0 18px 34px -14px rgba(20, 29, 54, 0.8), 0 0 0 6px rgba(226, 176, 74, 0.28);
+}
+.assistant-bubble:not(.is-shown), .assistant-bubble[data-away] {
+  opacity: 0; visibility: hidden; pointer-events: none; transform: translate(var(--dx, 0px), calc(var(--dy, 0px) - var(--lift, 0px))) scale(0.6);
+  transition: transform 0.2s ease, opacity 0.16s ease, visibility 0s 0.2s;
+}
+.assistant-bubble .fairy { width: 38px; height: 38px; }
+.assistant-hint {
+  position: absolute; right: calc(100% + 10px); top: 50%; transform: translate(6px, -50%);
+  padding: 0.3rem 0.75rem; border-radius: 999px; white-space: nowrap; pointer-events: none;
+  background: var(--paper-3); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 8px 20px -12px rgba(20, 29, 54, 0.5);
+  font-size: 0.82rem; font-weight: 700; opacity: 0; transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.assistant-bubble.is-hinting .assistant-hint,
+.assistant-bubble:hover .assistant-hint,
+.assistant-bubble:focus-visible .assistant-hint { opacity: 1; transform: translate(0, -50%); }
+/* Pegada al borde izquierdo, la pista va a su derecha; mientras se arrastra no se muestra. */
+.assistant-bubble[data-side="left"] .assistant-hint { right: auto; left: calc(100% + 10px); transform: translate(-6px, -50%); }
+.assistant-bubble[data-side="left"].is-hinting .assistant-hint,
+.assistant-bubble[data-side="left"]:hover .assistant-hint,
+.assistant-bubble[data-side="left"]:focus-visible .assistant-hint { transform: translate(0, -50%); }
+.assistant-bubble[data-dragging] .assistant-hint, .assistant-bubble[data-dragging]:hover .assistant-hint { opacity: 0; }
+.assistant-dot { position: absolute; top: 2px; right: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--rose); border: 2px solid #141d36; }
+/* Detalle animado discreto: de vez en cuando aletea y su estrellita parpadea (nada con movimiento reducido). */
+.fairy-wings { transform-origin: 24px 23px; }
+@media (prefers-reduced-motion: no-preference) {
+  .assistant-bubble.is-shown .fairy-wings { animation: fairy-flutter 7s ease-in-out 1.5s infinite; }
+  .assistant-bubble.is-shown .fairy-spark { animation: fairy-twinkle 7s ease-in-out 1.5s infinite; }
+}
+@keyframes fairy-flutter { 0%, 86%, 100% { transform: none; } 89% { transform: scaleX(0.84); } 92% { transform: none; } 95% { transform: scaleX(0.9); } }
+@keyframes fairy-twinkle { 0%, 82%, 100% { opacity: 1; } 90% { opacity: 0.2; } }
+
+/* Escritorio: mientras el panel está abierto, el contenido del contacto se aparta de él lo necesario
+   (en ventanas anchas no se mueve; en las más estrechas se recorre a la izquierda). */
+@media (min-width: 901px), (min-width: 761px) and (max-height: 500px) {
+  .footer-inner { transition: padding-right 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  html[data-assistant="open"] .footer-inner { padding-right: max(1.25rem, min(400px, 900px - 50vw, 1420px - 100vw)); }
 }
 
-
-.card-right {
-  flex: 0 0 150px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center; /* 👈 ESTA es la que te faltó */
-  gap: 0.5rem;
-}
-
-.btn-linkedin {
-  display: inline-block;
-  padding: 0.4rem 0.8rem;
-  background: #2563eb;
-  color: #fff;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 0.8rem;
-  transition: background 0.3s ease;
-}
-
-.btn-linkedin:hover {
-  background: #1d4ed8;
+/* Móvil y tableta vertical: hoja inferior de media pantalla, que deja ver la página por encima, se
+   apoya sobre el teclado (--kb, --vvh) y respeta las zonas seguras. Bajo el pie se añade el espacio
+   del panel para poder leer todo el contacto por encima de él (data-assistant-space). */
+@media (max-width: 760px), (max-width: 900px) and (min-height: 501px) {
+  .assistant-panel {
+    left: 0; right: 0; bottom: var(--kb, 0px); width: auto; min-height: 0;
+    height: min(clamp(300px, 52vh, 560px), calc(var(--vvh, 100vh) - var(--topbar) - 10px));
+    height: min(clamp(300px, 52dvh, 560px), calc(var(--vvh, 100dvh) - var(--topbar) - 10px));
+    border-radius: 22px 22px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -18px 50px -24px rgba(20, 29, 54, 0.55), 0 0 0 1px var(--line);
+    transform-origin: calc(100% - 39px) calc(100% - 39px);
+  }
+  .assistant-head { padding: 0.6rem 0.7rem 0.6rem 0.9rem; }
+  .assistant-bubble { width: 50px; height: 50px; right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .assistant-bubble .fairy { width: 35px; height: 35px; }
+  html[data-assistant="min"] .footer-inner { padding-bottom: calc(2.5rem + 64px); }
+  html[data-assistant-space] .footer-inner { padding-bottom: calc(2.5rem + var(--assistant-space, 0px)); }
+  /* El espacio aparece de golpe (antes de bajar a Contacto) y, si se quita a la vista, se recoge suave. */
+  html:not([data-assistant-space]) .footer-inner { transition: padding-bottom 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
 }
