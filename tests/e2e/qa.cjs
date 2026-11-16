@@ -2698,6 +2698,171 @@ function glCounters() {
     }
   }
 
+  // ---------- V6.24: Atrás cierra primero el visor de evidencias o el video ----------
+  {
+    const st = (pg) => pg.evaluate(() => ({
+      path: location.pathname,
+      sheet: !!document.querySelector(".sheet"),
+      viewer: !!document.querySelector("dialog[open]"),
+      fs: !!document.querySelector(".universe-wrap.is-fullscreen"),
+      canvas: !!document.querySelector("dialog[open] canvas"),
+      focus: (document.activeElement?.textContent || "").trim().slice(0, 24),
+    }));
+    const back = async (pg) => { await pg.goBack({ waitUntil: "commit" }).catch(() => {}); await pg.waitForTimeout(700); };
+    const noFsApi = () => { delete Element.prototype.requestFullscreen; delete Document.prototype.exitFullscreen; Object.defineProperty(Document.prototype, "fullscreenElement", { get: () => null }); };
+    // Como en la V6.23: se llega al inicio desde /video, así que «salir del sitio» es terminar en /video.
+    const fromVideo = async (ctxOpts, init) => {
+      const ctx = await browser.newContext({ locale: "es-MX", ...ctxOpts });
+      if (init) await ctx.addInitScript(init);
+      const p = await ctx.newPage();
+      const errs = [];
+      watch(p, errs);
+      await p.goto(BASE + "/video", { waitUntil: "load" });
+      await p.locator(".page-actions a.btn-ghost").click();
+      await until(p, () => location.pathname === "/" && !!document.querySelector("#universo"), null, 8000);
+      await p.evaluate(() => document.querySelector("#universo").scrollIntoView());
+      await until(p, () => !!document.querySelector("canvas.u-canvas") && !document.querySelector(".universe-status"), null, 30000);
+      await p.waitForTimeout(400);
+      return { ctx, p, errs };
+    };
+    const planet = async (p, id, tap = false) => {
+      const b = p.locator(`.planet-index [data-planet="${id}"]`).first();
+      if (tap) await b.tap(); else await b.click();
+      await until(p, () => !!document.querySelector(".sheet h2"), null, 8000);
+      await uiRest(p);
+    };
+    const evidence = async (p, re, tap = false) => {
+      const b = p.locator(".sheet button").filter({ hasText: re }).first();
+      await b.scrollIntoViewIfNeeded();
+      if (tap) await b.tap(); else await b.click();
+      await until(p, () => !!document.querySelector("dialog[open]"), null, 5000);
+      await p.waitForTimeout(400);
+    };
+
+    // Escritorio, imágenes: Atrás cierra el visor (la ficha sigue y el foco vuelve a su botón), el siguiente cierra la
+    // ficha y el otro sale a /video.
+    {
+      const { ctx, p, errs } = await fromVideo({ viewport: { width: 1366, height: 820 } });
+      await planet(p, "hospital-uanl");
+      await evidence(p, /imágenes/i);
+      const open = await st(p);
+      await back(p); const b1 = await st(p);
+      await back(p); const b2 = await st(p);
+      await back(p); const b3 = await st(p);
+      ok("V6.24 Atrás con el visor abierto lo cierra, la ficha sigue abierta con el foco en su botón; el siguiente Atrás cierra la ficha y el otro sale", open.viewer && open.sheet && !b1.viewer && b1.sheet && b1.path === "/proyecto/hospital-uanl" && /imágenes/i.test(b1.focus) && !b2.viewer && !b2.sheet && b2.path === "/" && b3.path === "/video" && !b3.viewer && errs.length === 0, JSON.stringify({ open, b1, b2, b3, errs }));
+      await ctx.close();
+    }
+
+    // Cerrar el visor con Esc o con la X no deja entradas de más: el Atrás siguiente ya cierra la ficha.
+    {
+      const { ctx, p } = await fromVideo({ viewport: { width: 1366, height: 820 } });
+      await planet(p, "hospital-uanl");
+      await evidence(p, /imágenes/i);
+      await p.keyboard.press("Escape");
+      await until(p, () => !document.querySelector("dialog[open]"), null, 3000);
+      const esc = await st(p);
+      await evidence(p, /imágenes/i);
+      await p.locator("dialog[open] .evidence-head .icon-btn").click();
+      await until(p, () => !document.querySelector("dialog[open]"), null, 3000);
+      await p.waitForTimeout(500);
+      const x = await st(p);
+      await back(p); const b1 = await st(p);
+      ok("V6.24 cerrar el visor con Esc o con la X lo cierra sin dejar entradas: el Atrás siguiente cierra la ficha", esc.sheet && !esc.viewer && x.sheet && !x.viewer && /imágenes/i.test(x.focus) && b1.path === "/" && !b1.sheet, JSON.stringify({ esc, x, b1 }));
+      await ctx.close();
+    }
+
+    // El video de presentación desde la ficha de la nave: Atrás lo cierra y la ficha sigue.
+    {
+      const { ctx, p } = await fromVideo({ viewport: { width: 1366, height: 820 } });
+      await planet(p, "nave");
+      await p.locator(".sheet .video-btn").click();
+      await until(p, () => !!document.querySelector("dialog[open]"), null, 5000);
+      await p.waitForTimeout(400);
+      await back(p); const b1 = await st(p);
+      await back(p); const b2 = await st(p);
+      ok("V6.24 Atrás con el video de la nave abierto lo cierra y la ficha de la nave sigue; el siguiente Atrás la cierra", !b1.viewer && b1.sheet && b1.path === "/nave" && !b2.sheet && b2.path === "/", JSON.stringify({ b1, b2 }));
+      await ctx.close();
+    }
+
+    // Modelo 3D: Atrás cierra el visor y libera su lienzo WebGL.
+    {
+      const { ctx, p } = await fromVideo({ viewport: { width: 1366, height: 820 } });
+      await planet(p, "vr-nave");
+      await evidence(p, /modelo 3D/i);
+      const ready = await until(p, () => !!document.querySelector("dialog[open] canvas"), null, 20000);
+      await back(p); const b1 = await st(p);
+      ok("V6.24 Atrás con el modelo 3D abierto cierra el visor, libera su lienzo y la ficha sigue", ready && !b1.viewer && !b1.canvas && b1.sheet && b1.path === "/proyecto/vr-nave", JSON.stringify({ ready, b1 }));
+      await ctx.close();
+    }
+
+    // Celular en el modo con CSS (iPhone): pantalla completa, ficha y visor; cada Atrás cierra una capa y el último sale.
+    {
+      const { ctx, p } = await fromVideo({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 }, noFsApi);
+      await p.getByRole("button", { name: "Pantalla completa" }).first().tap();
+      await until(p, () => !!document.querySelector(".universe-wrap.is-fullscreen"), null, 5000);
+      await planet(p, "finanzas-datos", true);
+      await evidence(p, /imágenes/i, true);
+      const open = await st(p);
+      await back(p); const b1 = await st(p);
+      await back(p); const b2 = await st(p);
+      await back(p); const b3 = await st(p);
+      ok("V6.24 celular (modo CSS): Atrás cierra el visor, después la ficha con la pantalla completa, y el último sale", open.viewer && open.fs && !b1.viewer && b1.sheet && b1.fs && !b2.sheet && !b2.fs && b2.path === "/" && b3.path === "/video", JSON.stringify({ open, b1, b2, b3 }));
+      await ctx.close();
+    }
+
+    // Táctil con la API de pantalla completa: salir de ella con el visor abierto no cierra la ficha por debajo.
+    {
+      const { ctx, p } = await fromVideo({ viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2.6 });
+      await p.getByRole("button", { name: "Pantalla completa" }).first().tap();
+      await until(p, () => !!document.querySelector(".universe-wrap.is-fullscreen"), null, 5000);
+      await planet(p, "hospital-uanl", true);
+      await evidence(p, /imágenes/i, true);
+      await p.evaluate(() => (document.fullscreenElement ? document.exitFullscreen() : null)).catch(() => {});
+      await until(p, () => !document.querySelector(".universe-wrap.is-fullscreen"), null, 3000);
+      await p.waitForTimeout(500);
+      const exited = await st(p);
+      await back(p); const b1 = await st(p);
+      await back(p); const b2 = await st(p);
+      ok("V6.24 táctil: salir de pantalla completa con el visor abierto deja visor y ficha; Atrás los cierra en orden", exited.viewer && exited.sheet && !exited.fs && !b1.viewer && b1.sheet && b2.path === "/" && !b2.sheet, JSON.stringify({ exited, b1, b2 }));
+      await ctx.close();
+    }
+
+    // Adelante hasta un visor ya cerrado no lo reabre ni deja un Atrás que no haga nada.
+    {
+      const { ctx, p } = await fromVideo({ viewport: { width: 1366, height: 820 } });
+      await planet(p, "hospital-uanl");
+      await evidence(p, /imágenes/i);
+      await back(p);
+      await p.goForward({ waitUntil: "commit" }).catch(() => {});
+      await p.waitForTimeout(900);
+      const f1 = await st(p);
+      await back(p); const b1 = await st(p);
+      ok("V6.24 Adelante hasta un visor ya cerrado no lo reabre, y el Atrás siguiente cierra la ficha", !f1.viewer && f1.sheet && f1.path === "/proyecto/hospital-uanl" && !b1.sheet && b1.path === "/", JSON.stringify({ f1, b1 }));
+      // Saltar dos entradas de golpe (como desde el menú de Adelante) hasta ese visor cerrado: la ficha se abre, el
+      // visor no, y la dirección corresponde a lo que se ve.
+      await p.evaluate(() => history.go(2));
+      await p.waitForTimeout(1500);
+      const j = await st(p);
+      await back(p); const b2 = await st(p);
+      ok("V6.24 saltar varias entradas hasta un visor cerrado abre la ficha de esa dirección, sin el visor, y Atrás la cierra", j.sheet && !j.viewer && j.path === "/proyecto/hospital-uanl" && !b2.sheet && b2.path === "/", JSON.stringify({ j, b2 }));
+      await ctx.close();
+    }
+
+    // Recargar con el visor abierto: la ficha queda abierta, sin visor, y Atrás la cierra.
+    {
+      const { ctx, p } = await fromVideo({ viewport: { width: 1366, height: 820 } });
+      await planet(p, "hospital-uanl");
+      await evidence(p, /imágenes/i);
+      await p.reload({ waitUntil: "load" });
+      await until(p, () => !!document.querySelector(".sheet h2"), null, 20000);
+      await p.waitForTimeout(1200);
+      const r = { ...(await st(p)), overlay: await p.evaluate(() => history.state?.usr?.overlay === true) };
+      await back(p); const b1 = await st(p);
+      ok("V6.24 recargar con el visor abierto deja la ficha sin visor y Atrás la cierra", r.sheet && !r.viewer && !r.overlay && r.path === "/proyecto/hospital-uanl" && b1.path === "/" && !b1.sheet, JSON.stringify({ r, b1 }));
+      await ctx.close();
+    }
+  }
+
   // Sin JavaScript: el aviso con nombre, correo, LinkedIn y los CV se lee centrado. Su estilo va en una clase:
   // con la política de seguridad de producción, un estilo en línea se ignoraría.
   {

@@ -1,14 +1,16 @@
 # Informe de entrega: portafolio de Jonathan Corpus
 
-Fecha: 9 de noviembre de 2026. Base: `jonathancorpusV3.rar` (carpeta `portafolio-vite`). Última revisión: versión 6.23, del 15 de noviembre (sobre la 6.22; la numeración salta de 4.6 a 6 a petición tuya; música: pista al 15 % y control al 35 %, sin cambios).
+Fecha: 9 de noviembre de 2026. Base: `jonathancorpusV3.rar` (carpeta `portafolio-vite`). Última revisión: versión 6.24, del 16 de noviembre (sobre la 6.23; la numeración salta de 4.6 a 6 a petición tuya; música: pista al 15 % y control al 35 %, sin cambios).
 
 ## Estado de la entrega: léelo primero
 
-- **La V6.23 todavía no está publicada.** No se pudo subir desde la sesión: tu repositorio no estaba entre los autorizados para ella y el conector de GitHub solo sube archivos de texto (las fuentes, la luz del visor y las capturas son binarios). No se tocó nada en GitHub ni en Vercel: el sitio sigue en la V6.21 (commit `07640f0`, del 8 de noviembre).
-- **Este zip trae la V6.22 y la V6.23 juntas**, sobre ese commit: 33 archivos (14 nuevos y 19 modificados; ninguno borrado). Con subir este basta.
-- **Para la reauditoría:** `AUDITORIA_E2E_PORTAFOLIO.md` trae ahora la sección 12, «Seguimiento»: el estado de cada hallazgo, cómo se verificó y qué revisar en el sitio publicado. Va aparte y no dentro del repositorio, porque el repositorio es público y la auditoría incluye la parte de seguridad.
+- **Publicada:** la V6.23, que incluye la V6.22, está en el sitio desde el 16 de noviembre (commit `1c117ed`). La reauditoría en producción confirmó las siete correcciones, sin regresiones, y encontró un pendiente nuevo: R-01.
+- **Este zip es la V6.24:** corrige R-01 (Atrás con el visor de evidencias o el video abiertos) y pone al día este informe (R-03). Va sobre el commit `1c117ed`: 6 archivos modificados, ninguno nuevo ni borrado.
+- **Para la reauditoría:** `REAUDITORIA_E2E_PORTAFOLIO.md` (el estado de cada hallazgo en producción) y `AUDITORIA_E2E_PORTAFOLIO.md` (la auditoría original, con su sección 12). Van aparte y no dentro del repositorio, porque el repositorio es público y la auditoría incluye la parte de seguridad.
 
 ### Qué se hizo
+
+Las filas 1 a 8 están publicadas y la reauditoría las confirmó en producción. La 9 y la 10 van en este zip.
 
 | # | Qué | Versión | Resultado (réplica local) |
 |---|---|---|---|
@@ -20,8 +22,10 @@ Fecha: 9 de noviembre de 2026. Base: `jonathancorpusV3.rar` (carpeta `portafolio
 | 6 | H-01: Atrás cierra la ficha y la pantalla completa sin salir del portafolio; al cerrar, la dirección vuelve a `/` | V6.23 | Con la ficha, con pantalla completa y en celular sin pantalla completa del navegador: el primer Atrás te deja en `/` |
 | 7 | H-05: Fraunces y Nunito Sans alojadas en el sitio, sin Google Fonts | V6.23 | Primer pintado con Google lento: 8.2 s → 0.24 s; CLS en 4G lenta: 0.178 → 0 |
 | 8 | H-07: arranque del universo en pasos cortos y más tarde en celular | V6.23 | Al cargar en celular: tarea más larga 488 → 133 ms y bloqueo total 914 → 177 ms |
+| 9 | R-01: con el visor de evidencias o el video abiertos, Atrás los cierra primero y la ficha sigue | V6.24 | Antes, Atrás cerraba la ficha de abajo y el visor seguía abierto, incluso en `/video`; ahora se cierra una capa por Atrás: el visor, la ficha y después la página |
+| 10 | R-03: este informe, al día | V6.24 | Esta sección ya dice qué está publicado y qué trae el zip |
 
-Pruebas: unitarias 47/47, e2e 436/436 y build desde un extracto limpio del zip. El detalle de cada cambio está en la sección de su versión, abajo. Siguen pendientes H-08 a H-30; H-22, en parte: al cerrar la ficha la dirección ya vuelve a `/`, pero una ruta inexistente sigue mostrando el inicio sin aviso.
+Pruebas: unitarias 47/47, e2e 445/445 y build desde un extracto limpio del zip. El detalle de cada cambio está en la sección de su versión, abajo. Siguen pendientes R-02 (Adelante reabre la ficha sin llevar la vista al universo), H-08 a H-30 y el aviso de H-22 para las rutas inexistentes.
 
 ### Cómo subirlo (directo a `main`)
 
@@ -35,20 +39,59 @@ Pruebas: unitarias 47/47, e2e 436/436 y build desde un extracto limpio del zip. 
    git reset --soft origin/main
    git add -A
    git diff --cached --shortstat
-   git commit -m "V6.23: robot 3D fluido, luz precalculada, CV, pantalla completa, foco, Atrás, fuentes propias y arranque del universo"
+   git commit -m "V6.24: Atrás cierra primero el visor y el video; informe al día"
    git push origin HEAD:main
    ```
 
-   `git diff --cached --shortstat` debe empezar con `33 files changed`. Si dice otro número, no hagas el commit: o no estás en la carpeta correcta o `main` cambió después del 8 de noviembre, y lo que no esté en esta carpeta saldría del repositorio.
+   `git diff --cached --shortstat` debe empezar con `6 files changed`. Si dice otro número, no hagas el commit: o no estás en la carpeta correcta o `main` cambió después del 16 de noviembre, y lo que no esté en esta carpeta saldría del repositorio.
 3. Al hacer push, Git te pide entrar a GitHub (se abre el navegador o te pide tu token). Vercel lo publica solo en uno o dos minutos; lo ves en *Deployments*.
-4. Para confirmar que ya está la nueva, abre https://jonathancorpuscv.vercel.app/modelos/entorno-estudio.bin: con la V6.23 se descarga un archivo de 84 KB; con la V6.21 sale 404.
+4. Para confirmar que ya está la nueva: abre una ficha con imágenes (por ejemplo, la 07), ábrelas con «Ver imágenes» y presiona Atrás. Con la V6.24 se cierra el visor y la ficha sigue; con la V6.23 se cerraba la ficha y el visor seguía encima.
 
 Si algo sale distinto:
 
 - «remote origin already exists»: sáltate esa línea.
 - Git pide tu nombre y correo: `git config --global user.name "Tu nombre"` y `git config --global user.email "tu-correo-de-github"`, y repite el commit.
 - «LF will be replaced by CRLF»: es normal en Windows.
-- Si prefieres verla antes en una vista previa: en el último comando usa `HEAD:v6-23`, ábrela desde *Deployments* en Vercel y, si todo está bien, corre `git push origin HEAD:main`.
+- Si prefieres verla antes en una vista previa: en el último comando usa `HEAD:v6-24`, ábrela desde *Deployments* en Vercel y, si todo está bien, corre `git push origin HEAD:main`.
+
+## Versión 6.24: Atrás cierra primero el visor de evidencias y el video
+
+Lo que pediste el 16 de noviembre, después de la reauditoría de la V6.23 publicada: corregir R-01 y poner al día este informe (R-03).
+
+| Qué pediste | Cómo queda |
+|---|---|
+| **R-01: con el visor o el video abiertos, Atrás cerraba la ficha de abajo.** | El visor de evidencias (imágenes, videos y modelo 3D) y el video de presentación de la nave ahora son una capa más del historial, como la ficha y la pantalla completa desde la V6.23. Atrás (el botón, Alt + ←, el gesto del iPhone o el de Android) cierra primero el visor: la ficha sigue abierta, en el mismo punto, y el foco vuelve al botón que lo abrió. El siguiente Atrás cierra la ficha y el otro ya lleva a la página anterior. Cerrar el visor con la X, con Esc o tocando fuera no deja entradas de más. Si sales de pantalla completa con el visor abierto, en el celular ya no se cierra la ficha por debajo. Adelante no reabre un visor que ya se cerró (así no queda un Atrás que no haga nada), y recargar con el visor abierto deja la ficha, sin el visor. |
+| **R-03: el informe decía que la V6.23 no estaba publicada.** | La sección de estado, al principio, ya dice qué está publicado (la V6.23, commit `1c117ed`) y qué trae este zip. |
+
+Lo que no se tocó:
+
+- El diseño, los textos y el resto del sitio. R-02 (Adelante reabre la ficha sin llevar la vista al universo) queda para otra versión.
+- Tu `vite.config.js`, byte por byte.
+
+Archivos modificados:
+
+- `src/App.jsx`: el visor y el video como capa del historial.
+- `src/components/Home.jsx`: deja pasar esas entradas sin tocar la ficha y, al salir de pantalla completa con el visor abierto, no cierra la ficha.
+- `tests/e2e/qa.cjs`: 9 pruebas nuevas.
+- `README.md`, `docs/CONTENIDO.md` (sección 11) y este informe.
+
+Pruebas:
+
+- Unitarias: 47/47.
+- e2e: 445/445 en la corrida completa (las 436 de antes y 9 nuevas), contra el servidor con las cabeceras de producción, en PC y celular.
+- Antes y después, V6.23 contra V6.24, llegando al inicio desde `/video`:
+  - Imágenes y Atrás: la V6.23 cerraba la ficha y dejaba el visor (el segundo Atrás llegaba a `/video` con el visor todavía encima y el tercero salía del sitio). La V6.24 cierra el visor, la ficha sigue y el foco vuelve a «Ver imágenes»; luego Atrás cierra la ficha y el siguiente va a `/video`.
+  - Video de la nave y Atrás: igual que con las imágenes.
+  - Modelo 3D y Atrás: la V6.23 dejaba el modelo abierto sobre el inicio. La V6.24 cierra el visor y libera su lienzo.
+  - Celular sin pantalla completa del navegador (como el iPhone), con pantalla completa, ficha y visor: la V6.24 cierra una capa por Atrás (el visor; después la ficha con la pantalla completa) y el último Atrás sale.
+  - Táctil, saliendo de pantalla completa con el visor abierto: la V6.23 cerraba la ficha por debajo y dejaba el visor; la V6.24 deja los dos y Atrás los cierra en orden.
+  - Esc en pantalla completa con ficha y visor: igual en las dos (visor, ficha y pantalla completa, en ese orden) y sin entradas de más.
+- Build y unitarias repetidas desde un extracto limpio del zip.
+
+Qué verificar a mano:
+
+- En tu laptop: abre una ficha con imágenes, ábrelas y presiona Atrás (o Alt + ←): se cierra el visor y la ficha sigue.
+- En tu celular: lo mismo con el gesto Atrás, también en pantalla completa; y con el video de la nave.
 
 ## Versión 6.23: Atrás ya no saca del portafolio, las tipografías son del sitio y el universo arranca sin trabar
 
@@ -90,7 +133,7 @@ Pruebas:
   - Las mejoras de la V6.22 (CV, posición al salir de pantalla completa, foco) siguen pasando.
 - Build y unitarias repetidas desde un extracto limpio del zip.
 
-Para subirla: «Cómo subirlo», al principio de este informe.
+Publicada el 16 de noviembre (commit `1c117ed`).
 
 Qué verificar a mano:
 
@@ -145,7 +188,7 @@ Pruebas:
   - CV con la comprobación bloqueada o con 403: V6.21, los 6 botones «pendiente»; V6.22, los 6 descargan. Con 404 se marcan «pendiente» en las dos.
 - Build y unitarias repetidas desde un extracto limpio del zip.
 
-No hace falta subirla aparte: la V6.23 la incluye («Cómo subirlo», al principio de este informe).
+Publicada junto con la V6.23 el 16 de noviembre (commit `1c117ed`).
 
 Qué verificar a mano:
 

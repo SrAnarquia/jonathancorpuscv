@@ -40,7 +40,7 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
   const [tour, setTour] = useState(false);
   const [view, setView] = useState(webglOk ? "3d" : "list");
   const latest = useRef({});
-  latest.current = { selectedId, panelOpen, fsActive: fs.active };
+  latest.current = { selectedId, panelOpen, fsActive: fs.active, overlayOpen: !!videoOpen };
 
   useEffect(() => { document.title = t("doc.title"); }, [t]);
 
@@ -147,6 +147,9 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
     prevFs.current = fs.active;
     if (!was || fs.active) return;
     autoFsBlocked.current = true;
+    // Con el visor o el video abiertos encima (V6.24), la ficha no se toca: cerrarla movería el historial por
+    // debajo de su entrada. Al cerrarlos queda la ficha, como al abrir un planeta sin pantalla completa.
+    if (latest.current.overlayOpen) return;
     if (coarse && latest.current.panelOpen) closePanel();
     else if (!latest.current.panelOpen) closeLayers();
   }, [fs.active, coarse, closePanel, closeLayers]);
@@ -166,10 +169,23 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
   // Rutas de entrada y enlaces internos: /proyecto/<id>, /nave (abre la nave) y /#sección. También Atrás y
   // Adelante (`pop`): la ficha sigue a la dirección y, sin capa, se sale de la pantalla completa (V6.23).
   const mounted = useRef(false);
+  const prevEntry = useRef(null);
   useEffect(() => {
     const path = location.pathname;
-    const pop = mounted.current && navType === "POP";
+    const wasMounted = mounted.current;
+    const pop = wasMounted && navType === "POP";
     mounted.current = true;
+    const m = path.match(/^\/proyecto\/([\w-]+)/);
+    const wanted = m ? (ORDER.includes(m[1]) ? m[1] : null) : path === "/nave" ? SHIP_ID : null;
+    // El visor y el video son una capa del historial que lleva App (V6.24): abrirlos agrega una entrada con la
+    // misma dirección y cerrarlos regresa a la de la ficha. Si la ficha ya es la de esa dirección, para ella y la
+    // pantalla completa nada cambia, así que esos movimientos no se tocan aquí. (Si no lo es, por ejemplo al saltar
+    // varias entradas de golpe desde el menú de Atrás, se trata como cualquier otra entrada.)
+    const before = prevEntry.current;
+    prevEntry.current = { path, overlay: location.state?.overlay === true };
+    const overlayMove = wasMounted && (prevEntry.current.overlay || (before?.overlay && before.path === path));
+    const inPlace = wanted ? wanted === latest.current.selectedId && latest.current.panelOpen : !latest.current.panelOpen;
+    if (overlayMove && inPlace) return;
     // Eco de una navegación propia (ver `go`): ya está reflejada en el estado. Atrás y Adelante nunca lo son.
     if (!location.hash && !pop) {
       const i = pending.current.findIndex((p) => p.path === path);
@@ -181,8 +197,6 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
       if (latest.current.fsActive) fs.exit();
     }
     const jump = (hash) => (document.fonts?.ready || Promise.resolve()).then(() => document.querySelector(hash)?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" }));
-    const m = path.match(/^\/proyecto\/([\w-]+)/);
-    const wanted = m ? (ORDER.includes(m[1]) ? m[1] : null) : path === "/nave" ? SHIP_ID : null;
     if (wanted) {
       if (wanted !== latest.current.selectedId || !latest.current.panelOpen) {
         select(wanted, { fromUrl: true });
