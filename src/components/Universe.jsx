@@ -37,8 +37,14 @@ export default function Universe({
     const host = hostRef.current;
     let scene = null;
     let cancelled = false;
+    let started = false;
+    let cancelIdle = () => {};
 
     const boot = () => {
+      if (started || cancelled) return;
+      started = true;
+      near.disconnect();
+      seen.disconnect();
       setStatus("loading");
       import("../three/UniverseScene.js")
         .then(async ({ UniverseScene, prepareScene }) => {
@@ -53,6 +59,8 @@ export default function Universe({
             onReady: () => setStatus("ready"),
             onContextLost: () => setStatus("lost"),
           });
+          // En pasos cortos (V6.23); si la escena se desecha a medio camino, devuelve false.
+          if (!(await scene.init()) || cancelled) return;
           sceneRef.current = scene;
           if (latest.current.selectedId) scene.focus(latest.current.selectedId);
         })
@@ -62,14 +70,29 @@ export default function Universe({
         });
     };
 
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { io.disconnect(); boot(); }
+    // Cuándo arranca (V6.23): cuando la sección queda a 400 px de la pantalla se espera a que la página esté
+    // libre (como mucho 1.5 s), para no competir con la carga; si la persona llega antes, arranca en el acto.
+    // Hasta la V6.22 arrancaba en cuanto quedaba a 400 px, y en celulares eso era al cargar la página.
+    const near = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      near.disconnect();
+      if (window.requestIdleCallback) {
+        const id = window.requestIdleCallback(boot, { timeout: 1500 });
+        cancelIdle = () => window.cancelIdleCallback(id);
+      } else {
+        const id = window.setTimeout(boot, 300); // Safari: sin requestIdleCallback
+        cancelIdle = () => window.clearTimeout(id);
+      }
     }, { rootMargin: "400px" });
-    io.observe(host);
+    const seen = new IntersectionObserver(([e]) => { if (e.isIntersecting) boot(); });
+    near.observe(host);
+    seen.observe(host);
 
     return () => {
       cancelled = true;
-      io.disconnect();
+      near.disconnect();
+      seen.disconnect();
+      cancelIdle();
       scene?.dispose();
       sceneRef.current = null;
     };

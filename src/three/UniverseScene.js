@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { buildPlanet, buildShip, buildPrince, buildStarKite, placeOnSurface, clearCaches, planetPaint, prepareWatercolors } from "./worlds.js";
-import { glowTexture } from "./textures.js";
+import { glowTexture, yieldToMain } from "./textures.js";
 
 // Escena Three.js del universo. Vive separada de React: la interfaz HTML le pide
 // cosas (enfocar un planeta, volver al centro, acercar) y la escena avisa mediante
@@ -107,6 +107,10 @@ export function prepareScene(projects) {
   return prepareWatercolors(projects.map((p, i) => planetPaint(p, i)));
 }
 
+// El arranque va en pasos cortos (V6.23): `new UniverseScene()` solo prepara los datos y `init()` crea el lienzo,
+// el cielo, cada planeta, la nave y las etiquetas, sube las texturas y compila los shaders cediéndole el turno a la
+// página entre un paso y otro. Hasta la V6.22 todo eso era una sola tarea de casi medio segundo (y el primer cuadro,
+// otra), y un toque o un desplazamiento en ese momento tardaba en responder.
 export class UniverseScene {
   constructor(container, opts) {
     this.container = container;
@@ -137,33 +141,82 @@ export class UniverseScene {
     this._axis = new THREE.Vector3(); this._q = new THREE.Quaternion();
     this.fly = 0;
     this._listeners = [];
-
-    this.initRenderer();
-    this.initWorld();
-    this.initLabels();
-    this.initEvents();
-    this.resize();
-
-    const pose = this.goalPose(null);
-    this.pose = { ...pose, target: pose.target.clone() };
-    this.tween = null;
-    // Donde el navegador compila shaders en paralelo, se compilan en segundo plano antes del primer
-    // cuadro para que arrancar no congele la página (si algo lo retrasa, a los 3 s se arranca igual).
-    // Donde no, el primer cuadro va en su propia tarea, como antes.
+    this.planets = [];
+    this.starMats = [];
     this.warm = false;
-    const warmed = () => {
-      if (this.warm || this.disposed) return;
-      this.warm = true;
-      // Primer cuadro en el acto, aunque el universo todavía no se vea: las texturas suben y los shaders
-      // quedan listos durante el arranque, no en el momento en que la persona llega al universo.
-      this.frame();
-      this.updateRunning();
-    };
-    if (this.renderer.extensions.has("KHR_parallel_shader_compile")) {
-      Promise.race([this.renderer.compileAsync(this.scene, this.camera), new Promise((r) => setTimeout(r, 3000))]).then(warmed, warmed);
-    } else {
-      setTimeout(warmed, 0);
+  }
+
+  // Crea la escena en pasos cortos. Devuelve false si se desechó (`dispose`) a medio camino.
+  async init() {
+    const steps = [
+      () => this.initRenderer(),
+      () => this.initSky(),
+      ...this.projects.map((p, i) => () => this.addPlanet(p, i)),
+      () => this.initShip(),
+      () => {
+        this.initLabels();
+        this.initEvents();
+        this.resize();
+        const pose = this.goalPose(null);
+        this.pose = { ...pose, target: pose.target.clone() };
+        this.tween = null;
+      },
+    ];
+    for (const step of steps) {
+      if (this.disposed) return false;
+      step();
+      await yieldToMain();
     }
+    // Las texturas suben a la tarjeta gráfica una por paso (si no, las sube todas juntas el primer cuadro).
+    for (const tex of this.textures()) {
+      if (this.disposed) return false;
+      this.renderer.initTexture(tex);
+      await yieldToMain();
+    }
+    // Donde el navegador compila shaders en paralelo, se compilan en segundo plano antes del primer cuadro (si
+    // algo lo retrasa, a los 3 s se sigue igual). Donde no, se piden por partes, una por paso.
+    if (this.renderer.extensions.has("KHR_parallel_shader_compile")) {
+      await Promise.race([this.renderer.compileAsync(this.scene, this.camera).catch(() => {}), new Promise((r) => setTimeout(r, 3000))]);
+    } else {
+      for (const part of [...this.scene.children]) {
+        if (this.disposed) return false;
+        this.renderer.compile(part, this.camera, this.scene);
+        await yieldToMain();
+      }
+    }
+    // Ensayo parte por parte en un solo píxel del lienzo, que todavía no está en la página: cada parte sube su
+    // geometría y estrena sus shaders en su propio paso, así el primer cuadro de verdad ya no lo hace todo junto.
+    const parts = this.scene.children.filter((o) => !o.isLight);
+    const shown = parts.map((o) => o.visible);
+    this.renderer.setScissorTest(true);
+    this.renderer.setScissor(0, 0, 1, 1);
+    for (const part of parts) {
+      if (this.disposed) return false;
+      parts.forEach((o) => { o.visible = o === part; });
+      this.renderer.render(this.scene, this.camera);
+      await yieldToMain();
+    }
+    if (this.disposed) return false;
+    parts.forEach((o, i) => { o.visible = shown[i]; });
+    this.renderer.setScissorTest(false);
+    this.warm = true;
+    // El lienzo y las etiquetas entran a la página con el primer cuadro (antes se veía un rectángulo negro y las
+    // etiquetas amontonadas en la esquina mientras tanto). Ese cuadro va en el acto, aunque el universo todavía no
+    // se vea: así la persona llega a él ya listo.
+    this.container.append(this.renderer.domElement, this.labelLayer);
+    this.frame();
+    this.updateRunning();
+    return true;
+  }
+
+  // Texturas de los materiales de la escena, sin repetir.
+  textures() {
+    const set = new Set();
+    this.scene.traverse((o) => {
+      const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+      for (const m of ms) for (const v of Object.values(m)) if (v?.isTexture) set.add(v);
+    });
+    return [...set];
   }
 
   // ---------- inicialización ----------
@@ -176,8 +229,7 @@ export class UniverseScene {
     r.domElement.className = "u-canvas";
     r.domElement.setAttribute("role", "img");
     r.domElement.setAttribute("aria-label", "Universo en 3D con un planeta por proyecto y la nave al final del viaje. Usa la lista de planetas para navegar con teclado.");
-    this.container.appendChild(r.domElement);
-    this.renderer = r;
+    this.renderer = r; // el lienzo entra a la página con el primer cuadro (init)
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.FogExp2(0x1f2a4c, 0.0055);
     this.camera = new THREE.PerspectiveCamera(40, 1, 0.1, 800);
@@ -186,7 +238,8 @@ export class UniverseScene {
     this.pointer = new THREE.Vector2();
   }
 
-  initWorld() {
+  // Cielo, estrellas, polvo, luces y la estrella del centro.
+  initSky() {
     const S = this.scene;
     const lite = this.coarse;
 
@@ -244,37 +297,43 @@ export class UniverseScene {
     this.coreHalo = halo1;
     this.core.add(halo2, halo1, coreBall);
     S.add(this.core);
+    this.orbitRng = rng(7); // inclinación de las órbitas: la misma secuencia de siempre, planeta por planeta
+  }
 
-    // Planetas en órbita
-    const r = rng(7);
-    this.planets = this.projects.map((p, i) => {
-      const pl = buildPlanet(p, i);
-      const radius = 11 + i * 4.6;
-      const orbit = new THREE.Group();
-      orbit.rotation.x = (r() - 0.5) * 0.12;
-      orbit.rotation.z = (r() - 0.5) * 0.12;
-      const pts = [];
-      for (let k = 0; k <= 160; k++) {
-        const a = (k / 160) * Math.PI * 2;
-        pts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
-      }
-      const line = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(pts),
-        new THREE.LineBasicMaterial({ color: 0xf1d79e, transparent: true, opacity: 0.2, depthWrite: false })
-      );
-      orbit.add(line, pl.group);
-      S.add(orbit);
-      Object.assign(pl, {
-        orbit, line, radius,
-        angle: i * 2.399 + 0.6,
-        speed: 0.075 / Math.sqrt(radius),
-        scale: 1,
-        project: p,
-      });
-      pl.group.position.set(Math.cos(pl.angle) * radius, 0, Math.sin(pl.angle) * radius);
-      return pl;
+  // Un planeta en su órbita (uno por paso del arranque).
+  addPlanet(p, i) {
+    const S = this.scene;
+    const r = this.orbitRng;
+    const pl = buildPlanet(p, i);
+    const radius = 11 + i * 4.6;
+    const orbit = new THREE.Group();
+    orbit.rotation.x = (r() - 0.5) * 0.12;
+    orbit.rotation.z = (r() - 0.5) * 0.12;
+    const pts = [];
+    for (let k = 0; k <= 160; k++) {
+      const a = (k / 160) * Math.PI * 2;
+      pts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
+    }
+    const line = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: 0xf1d79e, transparent: true, opacity: 0.2, depthWrite: false })
+    );
+    orbit.add(line, pl.group);
+    S.add(orbit);
+    Object.assign(pl, {
+      orbit, line, radius,
+      angle: i * 2.399 + 0.6,
+      speed: 0.075 / Math.sqrt(radius),
+      scale: 1,
+      project: p,
     });
+    pl.group.position.set(Math.cos(pl.angle) * radius, 0, Math.sin(pl.angle) * radius);
+    this.planets.push(pl);
+  }
 
+  // La nave, el principito con sus estrellitas y el anillo de selección.
+  initShip() {
+    const S = this.scene;
     // La nave, más allá de la última órbita
     this.ship = buildShip();
     this.ship.group.position.set(50, 11, -34);
@@ -357,8 +416,7 @@ export class UniverseScene {
     };
     this.planets.forEach((p, i) => make(p.id, String(i + 1).padStart(2, "0"), p.project.planet.name));
     make(this.shipId, "✦", "La nave");
-    this.container.appendChild(layer);
-    this.labelLayer = layer;
+    this.labelLayer = layer; // entra a la página con el primer cuadro (init)
   }
 
   on(target, type, fn, opts) {
@@ -807,6 +865,7 @@ export class UniverseScene {
 
   dispose() {
     this.disposed = true;
+    if (!this.renderer) return; // se desechó antes de crear el lienzo (init a medio camino)
     this.stop();
     this._listeners.forEach((off) => off());
     this.ro?.disconnect();
@@ -823,6 +882,6 @@ export class UniverseScene {
     // acumulan al alternar lista/3D o al reintentar). Los eventos ya se quitaron arriba.
     if (!this.renderer.getContext().isContextLost()) this.renderer.forceContextLoss();
     this.renderer.domElement.remove();
-    this.labelLayer.remove();
+    this.labelLayer?.remove();
   }
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { useLang } from "../i18n";
 import Hero from "./Hero";
 import Universe from "./Universe";
@@ -10,12 +10,24 @@ import { useMedia, useReducedMotion } from "../hooks/useMedia";
 import { useFullscreen } from "../hooks/useFullscreen";
 
 const ORDER = [...PROJECTS.map((p) => p.id), SHIP_ID];
+const sheetPath = (id) => (id === SHIP_ID ? "/nave" : `/proyecto/${id}`);
+const isSheetPath = (path) => path === "/nave" || /^\/proyecto\/[\w-]+/.test(path);
+
+// Atrás con la ficha abierta (V6.23). Hasta la V6.22 abrir la ficha reemplazaba la entrada del historial, así que
+// Atrás (botón o gesto) sacaba del portafolio. Ahora la ficha y la pantalla completa son «capas»: abrir la primera
+// crea una entrada propia, marcada con `layer` en su estado; cambiar de planeta o abrir la otra capa la reemplaza
+// (un solo Atrás basta, se hayan visto los planetas que sea), y cerrar la última desde la página regresa a la
+// entrada de antes, sin dejar entradas repetidas. Atrás hasta una entrada sin capas cierra la ficha y sale de la
+// pantalla completa. Se lee del historial mismo (lo que React Router guarda en history.state), que está al día
+// en el acto, aunque React todavía no haya vuelto a pintar.
+const onLayerEntry = () => window.history.state?.usr?.layer === true;
 
 // Página principal: encabezado profesional + universo 3D + ficha del planeta elegido.
 export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, onHeroVisible, contact, assistantOpen }) {
   const { projects, t } = useLang();
   const navigate = useNavigate();
   const location = useLocation();
+  const navType = useNavigationType();
   const reducedMotion = useReducedMotion();
   const coarse = useMedia("(pointer: coarse)");
   const webglOk = useMemo(() => hasWebGL(), []);
@@ -42,17 +54,44 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
   // se recuerdan las rutas propias pendientes para no tratar su eco como si fuera un enlace externo
   // (de lo contrario una ficha cerrada con Esc podía reabrirse sola).
   const pending = useRef([]);
-  const go = useCallback((path) => {
+  // `push`: entrada nueva (abrir la primera capa). Si no, se reemplaza la actual, que conserva su marca de capa.
+  const go = useCallback((path, { push = false } = {}) => {
     pending.current = pending.current.filter((p) => Date.now() - p.at < 4000);
     pending.current.push({ path, at: Date.now() });
-    navigate(path, { replace: true });
+    navigate(path, { replace: !push, state: push || onLayerEntry() ? { layer: true } : null });
   }, [navigate]);
 
-  const select = useCallback((id) => {
+  // Abrir la primera capa. La entrada de abajo deja de restaurar el desplazamiento por su cuenta: al volver a
+  // ella (con Atrás o al cerrar) la página se queda donde está, en vez de brincar a donde estaba al abrir.
+  const openLayer = useCallback((path) => {
+    if (onLayerEntry()) { go(path); return; }
+    try { window.history.scrollRestoration = "manual"; } catch { /* sin soporte */ }
+    go(path, { push: true });
+  }, [go]);
+
+  // Ya no queda ninguna capa: de vuelta a la entrada de antes. Si no hay una del sitio (se llegó por un enlace
+  // directo a la ficha), solo cambia la dirección.
+  const closeLayers = useCallback(() => {
+    if (onLayerEntry()) navigate(-1);
+    else if (isSheetPath(window.location.pathname)) go("/");
+  }, [go, navigate]);
+
+  // La ficha se cerró desde la página: la dirección deja de ser la de la ficha. Si sigue la pantalla completa,
+  // en la misma entrada.
+  const leaveSheet = useCallback(() => {
+    if (latest.current.fsActive) go("/");
+    else closeLayers();
+  }, [go, closeLayers]);
+
+  // `fromUrl`: la dirección ya es la de la ficha (enlace directo, Atrás o Adelante); no se navega.
+  const select = useCallback((id, { fromUrl = false } = {}) => {
+    const { panelOpen: open, fsActive } = latest.current;
     setSelectedId(id);
     setPanelOpen(true);
-    go(id === SHIP_ID ? "/nave" : `/proyecto/${id}`);
-  }, [go]);
+    if (fromUrl) return;
+    if (!open && !fsActive) openLayer(sheetPath(id));
+    else go(sheetPath(id));
+  }, [go, openLayer]);
 
   const focusReturn = useRef(null);
   const closePanel = useCallback(() => {
@@ -61,8 +100,9 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
     setTour(false);
     // La nave sin su ficha desorienta (el principito queda a bordo sin explicación):
     // cerrar la ficha de la nave devuelve la cámara al centro.
-    if (selectedId === SHIP_ID) { setSelectedId(null); go("/"); }
-  }, [selectedId, go]);
+    if (selectedId === SHIP_ID) setSelectedId(null);
+    leaveSheet();
+  }, [selectedId, leaveSheet]);
 
   // Al cerrar la ficha, el foco vuelve al botón del planeta (o a su tarjeta en la vista de lista).
   useLayoutEffect(() => {
@@ -73,34 +113,43 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
   }, [panelOpen]);
 
   const center = useCallback(() => {
+    const hadSheet = latest.current.panelOpen;
     setSelectedId(null);
     setPanelOpen(false);
     setTour(false);
-    go("/");
-  }, [go]);
+    if (hadSheet) leaveSheet();
+    else if (isSheetPath(window.location.pathname)) go("/");
+  }, [go, leaveSheet]);
 
   // Pantalla completa automática: la primera interacción directa con el lienzo 3D
   // (tocar, hacer clic o arrastrar) entra en pantalla completa, en móvil y en escritorio.
   // Si el navegador no permite la API nativa, `enter` usa el modo equivalente con CSS,
   // y salir siempre queda a un gesto (X, Esc, Espacio o atrás). Cuando la persona sale,
   // no se vuelve a entrar solo en toda la visita: su salida es una decisión.
+  // Desde la V6.23 la pantalla completa también es una capa: Atrás sale de ella (en el iPhone, el gesto de
+  // volver ya no saca del sitio).
+  const enterFs = useCallback(() => {
+    if (!latest.current.panelOpen && !latest.current.fsActive) openLayer(window.location.pathname);
+    fs.enter();
+  }, [fs, openLayer]);
   const autoFsBlocked = useRef(false);
   const engageCanvas = useCallback(() => {
     if (autoFsBlocked.current || latest.current.fsActive) return;
-    fs.enter();
-  }, [fs]);
+    enterFs();
+  }, [enterFs]);
 
   // Al salir de pantalla completa: se bloquea la entrada automática y, en pantallas
   // táctiles, la ficha abierta se cierra (fuera de pantalla completa taparía el lienzo reducido).
+  // Sin ninguna capa abierta, se vuelve a la entrada de antes.
   const prevFs = useRef(fs.active);
   useEffect(() => {
     const was = prevFs.current;
     prevFs.current = fs.active;
-    if (was && !fs.active) {
-      autoFsBlocked.current = true;
-      if (coarse && latest.current.panelOpen) closePanel();
-    }
-  }, [fs.active, coarse, closePanel]);
+    if (!was || fs.active) return;
+    autoFsBlocked.current = true;
+    if (coarse && latest.current.panelOpen) closePanel();
+    else if (!latest.current.panelOpen) closeLayers();
+  }, [fs.active, coarse, closePanel, closeLayers]);
 
   const step = useCallback((dir) => {
     const i = ORDER.indexOf(selectedId);
@@ -114,27 +163,39 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
     select(ORDER[0]);
   };
 
-  // Rutas de entrada y enlaces internos: /proyecto/<id>, /nave (abre la nave) y /#sección.
+  // Rutas de entrada y enlaces internos: /proyecto/<id>, /nave (abre la nave) y /#sección. También Atrás y
+  // Adelante (`pop`): la ficha sigue a la dirección y, sin capa, se sale de la pantalla completa (V6.23).
+  const mounted = useRef(false);
   useEffect(() => {
     const path = location.pathname;
-    // Eco de una navegación propia (ver `go`): ya está reflejada en el estado.
-    if (!location.hash) {
+    const pop = mounted.current && navType === "POP";
+    mounted.current = true;
+    // Eco de una navegación propia (ver `go`): ya está reflejada en el estado. Atrás y Adelante nunca lo son.
+    if (!location.hash && !pop) {
       const i = pending.current.findIndex((p) => p.path === path);
       if (i >= 0) { pending.current = pending.current.slice(i + 1); return; }
+    }
+    if (pop && location.state?.layer !== true) {
+      // De vuelta en una entrada sin capas: la página vuelve a restaurar su desplazamiento como siempre.
+      try { window.history.scrollRestoration = "auto"; } catch { /* sin soporte */ }
+      if (latest.current.fsActive) fs.exit();
     }
     const jump = (hash) => (document.fonts?.ready || Promise.resolve()).then(() => document.querySelector(hash)?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" }));
     const m = path.match(/^\/proyecto\/([\w-]+)/);
     const wanted = m ? (ORDER.includes(m[1]) ? m[1] : null) : path === "/nave" ? SHIP_ID : null;
     if (wanted) {
-      if (wanted !== latest.current.selectedId || !latest.current.panelOpen) { select(wanted); jump("#universo"); }
+      if (wanted !== latest.current.selectedId || !latest.current.panelOpen) {
+        select(wanted, { fromUrl: true });
+        if (!pop) jump("#universo");
+      }
     } else {
-      // Navegación a otra sección del sitio: la ficha abierta se cierra para no tapar el contenido
-      // (y la nave se suelta: nunca queda enfocada sin su ficha).
+      // Navegación a otra sección del sitio, o Atrás con la ficha abierta: la ficha se cierra (y la nave se
+      // suelta: nunca queda enfocada sin su ficha).
       if (latest.current.panelOpen) {
         setPanelOpen(false); setTour(false);
         if (latest.current.selectedId === SHIP_ID) setSelectedId(null);
       }
-      if (location.hash) jump(location.hash);
+      if (location.hash && !pop) jump(location.hash);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.hash, location.key]);
@@ -145,8 +206,9 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
     if (!assistantOpen || !latest.current.panelOpen || window.matchMedia("(min-width: 960px)").matches) return;
     setPanelOpen(false);
     setTour(false);
-    if (latest.current.selectedId === SHIP_ID) { setSelectedId(null); go("/"); }
-  }, [assistantOpen, go]);
+    if (latest.current.selectedId === SHIP_ID) setSelectedId(null);
+    leaveSheet();
+  }, [assistantOpen, leaveSheet]);
 
   // Escape cierra lo que esté abierto encima, de arriba abajo (V6.16), también en pantalla completa y sin
   // salir de ella: el visor o el video (los cierra su propio diálogo), después la ficha, esté donde esté el
@@ -223,7 +285,7 @@ export default function Home({ music, videoOpen, onOpenVideo, onOpenEvidence, on
           onCenter={center}
           onStartTour={startTour}
           onToggleView={() => setView((v) => (v === "3d" ? "list" : "3d"))}
-          onToggleFullscreen={fs.toggle}
+          onToggleFullscreen={fs.active ? fs.exit : enterFs}
           onEngage={engageCanvas}
         />
 

@@ -66,9 +66,11 @@ export default function EvidenceViewer({ items, start = 0, title, onClose, onIte
     else if (e.key === "ArrowLeft") { e.preventDefault(); e.stopPropagation(); go(-1); }
   };
 
-  // Deslizar: un gesto horizontal de 40 px o más pasa de evidencia (dedo o ratón).
+  // Deslizar: un gesto horizontal de 40 px o más pasa de evidencia (dedo o ratón). Sobre un modelo 3D el
+  // gesto lo gira y no cuenta (V6.22: antes lo impedía el propio modelo deteniendo los eventos, ver ModelView).
   const onPointerDown = (e) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (e.target.closest?.(".model-frame")) return;
     swipe.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
   };
   const onPointerUp = (e) => {

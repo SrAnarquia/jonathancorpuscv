@@ -1,6 +1,158 @@
 # Informe de entrega: portafolio de Jonathan Corpus
 
-Fecha: 9 de noviembre de 2026. Base: `jonathancorpusV3.rar` (carpeta `portafolio-vite`). Última revisión: versión 6.21 (sobre la 6.20; la numeración salta de 4.6 a 6 a petición tuya; música: pista al 15 % y control al 35 %, sin cambios).
+Fecha: 9 de noviembre de 2026. Base: `jonathancorpusV3.rar` (carpeta `portafolio-vite`). Última revisión: versión 6.23, del 15 de noviembre (sobre la 6.22; la numeración salta de 4.6 a 6 a petición tuya; música: pista al 15 % y control al 35 %, sin cambios).
+
+## Estado de la entrega: léelo primero
+
+- **La V6.23 todavía no está publicada.** No se pudo subir desde la sesión: tu repositorio no estaba entre los autorizados para ella y el conector de GitHub solo sube archivos de texto (las fuentes, la luz del visor y las capturas son binarios). No se tocó nada en GitHub ni en Vercel: el sitio sigue en la V6.21 (commit `07640f0`, del 8 de noviembre).
+- **Este zip trae la V6.22 y la V6.23 juntas**, sobre ese commit: 33 archivos (14 nuevos y 19 modificados; ninguno borrado). Con subir este basta.
+- **Para la reauditoría:** `AUDITORIA_E2E_PORTAFOLIO.md` trae ahora la sección 12, «Seguimiento»: el estado de cada hallazgo, cómo se verificó y qué revisar en el sitio publicado. Va aparte y no dentro del repositorio, porque el repositorio es público y la auditoría incluye la parte de seguridad.
+
+### Qué se hizo
+
+| # | Qué | Versión | Resultado (réplica local) |
+|---|---|---|---|
+| 1 | Robot 3D (ficha 08): soltar el dedo o el ratón ya no lo traba; gira 1:1 con el dedo y con una inercia breve con el ratón | V6.22 | El segundo arrastre ya gira; después de soltar no se dibuja ni un cuadro más; con el ratón ya no sigue al puntero |
+| 2 | H-02: luz de estudio precalculada y shaders en segundo plano | V6.22 | Tarea más larga al abrir el modelo: 1,279 → 192 ms (celular) y 1,244 → 206 ms (PC); la luz se ve igual (diferencia máxima de 1 en 255) |
+| 3 | H-03: los CV solo dicen «pendiente» si el servidor responde que no están | V6.22 | Con la comprobación bloqueada o con un 403: de 6 botones «pendiente» a 6 descargas |
+| 4 | H-04: al salir de pantalla completa la página se queda donde estaba | V6.22 | Salto de 259 px (PC) y 276 px (celular) → 0 |
+| 5 | H-06: anillo de foco visible en el tema claro | V6.22 | Paradas de Tab por debajo de 3:1: 26 → 0 (claro) y 3 → 0 (oscuro) |
+| 6 | H-01: Atrás cierra la ficha y la pantalla completa sin salir del portafolio; al cerrar, la dirección vuelve a `/` | V6.23 | Con la ficha, con pantalla completa y en celular sin pantalla completa del navegador: el primer Atrás te deja en `/` |
+| 7 | H-05: Fraunces y Nunito Sans alojadas en el sitio, sin Google Fonts | V6.23 | Primer pintado con Google lento: 8.2 s → 0.24 s; CLS en 4G lenta: 0.178 → 0 |
+| 8 | H-07: arranque del universo en pasos cortos y más tarde en celular | V6.23 | Al cargar en celular: tarea más larga 488 → 133 ms y bloqueo total 914 → 177 ms |
+
+Pruebas: unitarias 47/47, e2e 436/436 y build desde un extracto limpio del zip. El detalle de cada cambio está en la sección de su versión, abajo. Siguen pendientes H-08 a H-30; H-22, en parte: al cerrar la ficha la dirección ya vuelve a `/`, pero una ruta inexistente sigue mostrando el inicio sin aviso.
+
+### Cómo subirlo (directo a `main`)
+
+1. Descomprime el zip en una carpeta nueva (no encima de tu copia actual) y entra a `portafolio-vite`, la que tiene `package.json`.
+2. Abre ahí una terminal (PowerShell, CMD o Git Bash) y corre, una por una:
+
+   ```
+   git init -b main
+   git remote add origin https://github.com/SrAnarquia/jonathancorpuscv.git
+   git fetch origin
+   git reset --soft origin/main
+   git add -A
+   git diff --cached --shortstat
+   git commit -m "V6.23: robot 3D fluido, luz precalculada, CV, pantalla completa, foco, Atrás, fuentes propias y arranque del universo"
+   git push origin HEAD:main
+   ```
+
+   `git diff --cached --shortstat` debe empezar con `33 files changed`. Si dice otro número, no hagas el commit: o no estás en la carpeta correcta o `main` cambió después del 8 de noviembre, y lo que no esté en esta carpeta saldría del repositorio.
+3. Al hacer push, Git te pide entrar a GitHub (se abre el navegador o te pide tu token). Vercel lo publica solo en uno o dos minutos; lo ves en *Deployments*.
+4. Para confirmar que ya está la nueva, abre https://jonathancorpuscv.vercel.app/modelos/entorno-estudio.bin: con la V6.23 se descarga un archivo de 84 KB; con la V6.21 sale 404.
+
+Si algo sale distinto:
+
+- «remote origin already exists»: sáltate esa línea.
+- Git pide tu nombre y correo: `git config --global user.name "Tu nombre"` y `git config --global user.email "tu-correo-de-github"`, y repite el commit.
+- «LF will be replaced by CRLF»: es normal en Windows.
+- Si prefieres verla antes en una vista previa: en el último comando usa `HEAD:v6-23`, ábrela desde *Deployments* en Vercel y, si todo está bien, corre `git push origin HEAD:main`.
+
+## Versión 6.23: Atrás ya no saca del portafolio, las tipografías son del sitio y el universo arranca sin trabar
+
+Lo que pediste el 15 de noviembre, sobre la V6.22: resolver los tres pendientes de la auditoría, H-01, H-05 y H-07.
+
+| Qué pediste | Cómo queda |
+|---|---|
+| **H-01: Atrás con una ficha abierta te sacaba del portafolio.** | Abrir la ficha de un planeta ahora crea su propia entrada en el historial: Atrás (el botón, el gesto de Android o el de volver del iPhone) la cierra y te deja en el portafolio. Si viste varios planetas con las flechas, basta un solo Atrás. La pantalla completa funciona igual: Atrás sale de ella y la página queda en el mismo punto. Cerrar con la X o con Esc no deja entradas de más, así que el siguiente Atrás ya lleva a la página anterior. Adelante vuelve a abrir la ficha. Al cerrar la ficha, la dirección regresa a `/` (antes se quedaba en `/proyecto/…`). Si alguien llega con un enlace directo a una ficha, Atrás lo regresa a donde venía, como cualquier página. |
+| **H-05: Google Fonts frenaba la carga y movía el encabezado.** | Fraunces y Nunito Sans ahora son archivos del sitio, con caché de un año, y las dos que se ven al abrir se precargan. Son las mismas fuentes con los mismos grosores: el encabezado y el pie se ven idénticos, píxel a píxel. Con Google tardando 8 s, el primer pintado bajó de 8.2 s a 0.24 s. En un celular con 4G lenta, el encabezado ya no brinca: el desplazamiento acumulado (CLS) bajó de 0.178 a 0, también con 3G. La política de contenido ya no permite Google Fonts y las visitas ya no le pasan su IP a Google. |
+| **H-07: el arranque del universo trababa la página.** | El arranque va en pasos cortos (cielo, cada planeta, la nave, las etiquetas, cada textura, los shaders y un ensayo de cada parte) y le cede el turno a la página entre uno y otro. En celular ya no arranca en plena carga: espera a que la página esté libre, como mucho 1.5 s, o arranca en el acto si llegas antes. Al cargar en un celular sin bajar (CPU 4 veces más lenta), la tarea más larga bajó de 488 a 133 ms y el bloqueo total de 914 a 177 ms. Al llegar al universo, el bloqueo del arranque bajó de 277 a 110 ms en PC y de 509 a 101 ms en celular, y tarda lo mismo en verse. Mientras arranca ya no se ve un rectángulo negro con las etiquetas amontonadas en la esquina. |
+
+Lo que noté, sin que sea una falla:
+
+- En la prueba de 4G lenta, el primer pintado pasa de unos 1.2 s a 1.7 s, porque ahora las fuentes llegan antes de pintar y por eso el texto ya no cambia de medida después. La comparación favorece a la V6.22: en esa prueba sus fuentes de Google no gastaban red. Las dos cifras están dentro de lo que Google considera bueno (menos de 1.8 s).
+- Al cerrar la ficha con la X, si bajaste mientras la leías, la página sube hasta el botón del planeta: es el foco que vuelve a él, para quien navega con el teclado. Ya pasaba antes y no lo cambié.
+- Todas las mediciones son en la réplica local con WebGL por software. En tu laptop y en tu celular conviene revisarlo en la vista previa.
+
+Lo que no se tocó:
+
+- El diseño, los textos y el resto del sitio.
+- Tu `vite.config.js`, byte por byte.
+
+Archivos modificados:
+
+- `src/components/Home.jsx`: H-01 (la ficha y la pantalla completa como capas del historial).
+- `src/fonts.css` (nuevo), `src/assets/fonts/` (nuevo: seis `.woff2` y sus licencias OFL), `src/main.jsx`, `index.html` y `vercel.json`: H-05.
+- `src/three/UniverseScene.js`, `src/three/textures.js` y `src/components/Universe.jsx`: H-07.
+- `tests/data.test.js` y `tests/e2e/qa.cjs`: las pruebas de esta versión.
+- `README.md`, `docs/CONTENIDO.md` (secciones 11, 15 y 16) y este informe.
+
+Pruebas:
+
+- Unitarias: 47/47 (`npm test`; una nueva: las tipografías salen del sitio, coinciden con sus precargas y la política de contenido no permite Google Fonts).
+- e2e: 436/436 en la corrida completa (las 428 de antes y 8 nuevas de esta versión), contra el servidor con las cabeceras de producción y en PC y celular. Corrió sin internet, con copias locales de los videos; las fuentes ya no hacen falta, porque son del sitio. Una prueba de la V6.22 (el anillo de foco) ahora espera a que React pinte antes de usar Tab: sin la hoja de Google, la página termina de cargar antes.
+- Antes y después, V6.22 contra V6.23 en la réplica local con las cabeceras de producción, llegando al inicio desde `/video` como en la auditoría:
+  - Ficha abierta y Atrás: la V6.22 te llevaba a `/video`; la V6.23 cierra la ficha y sigues en `/`.
+  - Pantalla completa y Atrás: la V6.22 te llevaba a `/video`; la V6.23 sale de pantalla completa en el mismo punto.
+  - Celular sin pantalla completa del navegador (como el iPhone), con la ficha abierta: la V6.22 salía a `/video` con el primer Atrás y del todo con el segundo; la V6.23 cierra la ficha y la pantalla completa con el primero, y sale a `/video` con el segundo.
+  - Las mejoras de la V6.22 (CV, posición al salir de pantalla completa, foco) siguen pasando.
+- Build y unitarias repetidas desde un extracto limpio del zip.
+
+Para subirla: «Cómo subirlo», al principio de este informe.
+
+Qué verificar a mano:
+
+- En tu celular: abre una ficha y usa el gesto Atrás; luego entra a pantalla completa y vuelve a usarlo. Las dos veces debes seguir en el portafolio.
+- Que las letras se vean como siempre (encabezado, títulos de las fichas y la cita en cursiva de cada ficha).
+- Abrir la página en el celular y desplazarte de inmediato: debe responder sin trabarse mientras el universo se prepara.
+
+## Versión 6.22: el robot 3D fluido en el celular, su luz precalculada y tres arreglos de la auditoría
+
+Lo que pediste el 15 de noviembre, después de la auditoría E2E (`AUDITORIA_E2E_PORTAFOLIO.md`), sobre la V6.21:
+
+- El visor 3D del robot: en el celular había que mantener el dedo presionado; al soltarlo «se tronaba todo», la página se quedaba congelada unos 3 segundos y la rotación quedaba mal calibrada.
+- Precalcular la luz metálica del modelo, con capturas de antes y después.
+- Los arreglos rápidos H-03, H-04 y H-06 de la auditoría.
+
+| Qué pediste | Cómo queda |
+|---|---|
+| **Soltar el robot ya no lo traba.** | La causa: el marco del modelo detenía los avisos de «tocar» y «soltar» para que girarlo no pasara a la evidencia siguiente. OrbitControls (el código de three.js que gira el modelo) escucha el «soltar» en toda la página, así que nunca se enteraba de que levantaste el dedo: el toque siguiente lo leía como un pellizco de dos dedos (el modelo cambiaba de tamaño o dejaba de responder) y, en PC, el modelo seguía al ratón sin presionar. Ahora el aviso llega siempre, y es el visor de evidencias el que no cuenta como deslizamiento un gesto que empieza sobre el modelo. Sobre las imágenes, deslizar sigue pasando de evidencia. |
+| **Movimiento fluido y bien calibrado.** | Con el dedo, el modelo gira lo mismo que el dedo y se queda donde lo sueltas; antes seguía girando por inercia y cada toque nuevo peleaba con ese giro. Con el ratón queda una inercia breve, de medio segundo, que dura lo mismo en un equipo rápido o en uno lento (antes dependía de los cuadros por segundo y podía alargarse varios segundos). En pantallas táctiles el visor dibuja a 1.5× en lugar de 2×: 44 % menos píxeles por cuadro, igual que ya hacía el universo. Al abrirse gira solo 12 segundos y se detiene; si lo tocas, se detiene antes. |
+| **Sin congelarse al abrirlo.** | El primer «Ver modelo 3D» congelaba la página (3.2 s en tu laptop con Intel HD 620) porque en ese momento el navegador compilaba, todo de golpe, los shaders que generan la luz de estudio y los del modelo. Ahora la luz llega ya calculada (sus shaders ya no hacen falta) y los del modelo se compilan en segundo plano, como los del universo; mientras, se ve la imagen fija del brazo. En la réplica local (WebGL por software; el celular, con la CPU 4 veces más lenta), la tarea más larga al abrirlo bajó de 1,279 a 192 ms en celular y de 1,244 a 206 ms en PC. |
+| **La luz metálica, precalculada y con capturas.** | `public/modelos/entorno-estudio.bin` (84 KB) es la misma luz que el visor generaba al abrirse, hecha una sola vez con `assets-src/entorno/hornear-entorno.cjs`. Antes y después, con la misma vista y la misma resolución, las capturas son idénticas en las cuatro vistas: la diferencia máxima es de 1 en 255 (redondeo) y ningún píxel difiere más. Captura `docs/capturas/d29-luz-visor-3d-antes-ahora.png`. Si el archivo no llega, el visor genera la luz como antes y se ve igual. |
+| **H-03: CV «(pendiente)» tras un fallo de red.** | Los botones del CV solo dicen «pendiente» si el servidor responde que el PDF no está (404). Un corte de red o un 403 del firewall de Vercel ya no los dejan sin enlace toda la visita, y si la comprobación no se pudo hacer, se repite la próxima vez que aparecen. `npm test` ahora comprueba que los dos CV existan y sean PDF; en la auditoría escribí que ya lo hacía, y no era así. |
+| **H-04: la página saltaba al salir de pantalla completa.** | Al entrar se anota dónde estaba el universo en la ventana y, al salir, la página vuelve ahí. Antes subía 259 px en PC y 276 px en un celular tipo iPhone; ahora 0, con la pantalla completa del navegador y con el modo CSS que usa el iPhone, saliendo con Esc, con el botón o desde el propio navegador. Si giras el celular mientras tanto, al salir el universo queda en el mismo lugar de la pantalla. |
+| **H-06: anillo de foco con poco contraste.** | Sobre el papel marfil el anillo ahora es oro oscuro (`--gold-deep`, 4.2:1; el oro claro daba 1.8:1); en el tema oscuro, oro claro. En el universo, detrás de los botones está el lienzo 3D y sobre la nebulosa clara el oro daba 2:1 en los dos temas: ahí el anillo dorado lleva un borde de noche y se ve sobre cualquier fondo. Medido píxel a píxel en 62 paradas de Tab por tema: antes, 26 por debajo de 3:1 en el tema claro y 3 en el oscuro; ahora, ninguna (mínimos de 3.3:1 y 6.8:1). Sin foco no cambia nada. Captura `docs/capturas/d30-foco-antes-ahora.png`. |
+
+Lo que no se tocó:
+
+- H-01 (Atrás saca del portafolio con una ficha abierta), H-05 (Google Fonts) y H-07 (arranque del universo): siguen como en la auditoría, porque no entraron en esta versión (se resolvieron en la V6.23).
+- El diseño, los textos y el resto del sitio.
+- Tu `vite.config.js`, byte por byte.
+
+Archivos modificados:
+
+- `src/three/ModelViewer.js`: luz precalculada (con respaldo), shaders en segundo plano, giro 1:1 con el dedo, inercia por tiempo y con corte, 1.5× en pantallas táctiles y giro automático de 12 s.
+- `src/components/ModelView.jsx`: el marco ya no detiene los avisos del puntero y le dice al visor si la pantalla es táctil.
+- `src/components/EvidenceViewer.jsx`: deslizar no cuenta si empieza sobre el modelo.
+- `src/hooks/useAsset.js` y `src/lib/assetStatus.js` (nuevo): H-03.
+- `src/hooks/useFullscreen.js`: H-04.
+- `src/index.css`: H-06 (variable `--focus` y el borde de noche en el universo).
+- `public/modelos/entorno-estudio.bin` (nuevo) y `assets-src/entorno/hornear-entorno.cjs` (nuevo; no se publica).
+- `tests/data.test.js`, `tests/evidence.test.js` y `tests/e2e/qa.cjs`: las pruebas de esta versión.
+- `README.md`, `docs/CONTENIDO.md` (secciones 11, 16 y 17), este informe y dos capturas nuevas en `docs/capturas/` (d29 y d30).
+
+Pruebas:
+
+- Unitarias: 46/46 (`npm test`; 3 nuevas: los CV existen y son PDF, cuándo se marca un CV como pendiente, y la luz del visor y los materiales que alcanza).
+- e2e: 428/428 en la corrida completa (las 418 de antes y 10 nuevas de esta versión), contra el servidor con las cabeceras de producción y en PC y celular. Corrió sin internet: las fuentes de Google y los videos se sirvieron con copias locales.
+- Antes y después, V6.21 contra V6.22 en la réplica local con las cabeceras de producción (Chromium con WebGL por software):
+  - Celular, con el dedo: en la V6.21 el segundo arrastre ya no giraba el modelo; en la V6.22 giran los dos, después de soltar no se dibuja ni un cuadro más y el modelo no cambia de tamaño.
+  - PC, con el ratón: en la V6.21, después de soltar, el modelo seguía al puntero sin botón; en la V6.22 no. La inercia termina en menos de un segundo, también en este navegador lento (antes seguía dibujando a los 2.5 s).
+  - Si `entorno-estudio.bin` no llega (bloqueado o 404), el modelo se ve igual, con la luz generada como antes. La luz se descarga una vez por visita.
+  - CV con la comprobación bloqueada o con 403: V6.21, los 6 botones «pendiente»; V6.22, los 6 descargan. Con 404 se marcan «pendiente» en las dos.
+- Build y unitarias repetidas desde un extracto limpio del zip.
+
+No hace falta subirla aparte: la V6.23 la incluye («Cómo subirlo», al principio de este informe).
+
+Qué verificar a mano:
+
+- En tu celular, ficha 08 → «Ver modelo 3D»: tocar, girar, soltar y volver a girar varias veces; pellizcar para acercar y alejar. En la imagen (2 / 3), deslizar el dedo sigue pasando a la siguiente.
+- En tu laptop: la primera apertura del modelo en una visita nueva (ya no debería congelar la página) y que, al soltar el ratón, el modelo no siga al puntero.
+- Pantalla completa: entrar y salir con Esc o con el botón; la página debe quedar donde estaba.
+- Tab desde el inicio, en el tema claro: el anillo de foco en oro oscuro.
 
 ## Versión 6.21: «Lo que me mueve» nuevo y los CV con íconos en vector
 

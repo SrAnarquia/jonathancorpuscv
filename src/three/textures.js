@@ -87,7 +87,8 @@ export function watercolorTexture(color, color2, seed = 1, size = 512) {
 }
 
 // Cede el turno al navegador (clics, desplazamiento, cuadros) entre un trabajo pesado y el siguiente.
-const yieldToMain = () => (globalThis.scheduler?.yield ? globalThis.scheduler.yield() : new Promise((r) => setTimeout(r, 0)));
+// También lo usa el arranque del universo (UniverseScene.init, V6.23).
+export const yieldToMain = () => (globalThis.scheduler?.yield ? globalThis.scheduler.yield() : new Promise((r) => setTimeout(r, 0)));
 
 // Pinta por adelantado los lienzos de `list` ([color, color2, seed, size?] por planeta), uno por tarea,
 // para que el arranque del universo no bloquee la página de golpe.

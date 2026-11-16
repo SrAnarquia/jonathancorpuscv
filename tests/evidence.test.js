@@ -107,3 +107,45 @@ test("el modelo 3D del 08 funciona con la CSP del sitio y pesa poco (V6.16)", ()
 test("desde la V6.15 los ocho proyectos tienen evidencias", () => {
   for (const p of PROJECTS) assert.ok(evidenceItems(p).length > 0, `${p.id} sin evidencias`);
 });
+
+// V6.22: la luz de estudio del visor 3D llega ya calculada (assets-src/entorno/hornear-entorno.cjs) en lugar de
+// generarse al abrir el visor, que congelaba la página unos 3 s la primera vez. Son los niveles de 16 px del entorno
+// de three.js: alcanzan para materiales con rugosidad de 0.21 o más, y el brazo va de 0.3 a 0.9. Con una pieza más
+// lisa el visor no falla, pero sus reflejos se verían más difusos que con la luz generada: habría que guardar
+// también los niveles de 32 y 64 px.
+test("la luz del visor 3D viene precalculada y alcanza para los materiales de los modelos (V6.22)", () => {
+  const viewer = readFileSync(new URL("../src/three/ModelViewer.js", import.meta.url), "utf8");
+  const url = viewer.match(/const ENV_URL = "([^"]+)"/)?.[1];
+  assert.ok(url, "ModelViewer.js sin ENV_URL");
+  const file = new URL("../public" + url, import.meta.url);
+  assert.ok(existsSync(file), `no existe public${url}`);
+  const buf = readFileSync(file);
+  assert.equal(buf.length, 336 * 32 * 4 * 2, "336 × 32 texeles RGBA en media precisión");
+  const half = new Uint16Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length));
+  const value = (h) => {
+    const e = (h >> 10) & 31, m = h & 1023, s = h & 0x8000 ? -1 : 1;
+    return e === 31 ? NaN : s * (e ? 2 ** (e - 15) * (1 + m / 1024) : 2 ** -14 * (m / 1024));
+  };
+  let bad = 0;
+  for (const h of half) if (!(value(h) >= 0)) bad++;
+  assert.equal(bad, 0, "valores negativos, infinitos o NaN");
+  // Siete niveles de 48 × 32, cada uno más difuso que el anterior: su brillo máximo baja.
+  const peaks = Array.from({ length: 7 }, (_, k) => {
+    let max = 0;
+    for (let y = 0; y < 32; y++) for (let x = 48 * k; x < 48 * (k + 1); x++) for (let c = 0; c < 3; c++) max = Math.max(max, value(half[(y * 336 + x) * 4 + c]));
+    return max;
+  });
+  assert.ok(peaks[0] > 1, "el entorno está vacío");
+  for (let k = 1; k < 7; k++) assert.ok(peaks[k] < peaks[k - 1], `el nivel ${k} no es más difuso que el ${k - 1}`);
+  for (const p of PROJECTS) {
+    for (const m of p.models || []) {
+      const gltf = JSON.parse(readFileSync(new URL("../public" + m.src, import.meta.url), "utf8"));
+      for (const mat of gltf.materials || []) {
+        const pbr = mat.pbrMetallicRoughness || {};
+        assert.ok((pbr.roughnessFactor ?? 1) >= 0.21, `${p.id}: ${mat.name} tiene rugosidad ${pbr.roughnessFactor}; la luz precalculada alcanza desde 0.21`);
+        assert.equal(pbr.metallicRoughnessTexture, undefined, `${p.id}: ${mat.name} trae textura de rugosidad: revisa que no baje de 0.21`);
+        for (const ext of Object.keys(mat.extensions || {})) assert.doesNotMatch(ext, /clearcoat|sheen|transmission|iridescence|anisotropy/, `${p.id}: ${mat.name} usa ${ext}`);
+      }
+    }
+  }
+});

@@ -1533,6 +1533,134 @@ function glCounters() {
       const fallback = await until(pn, () => { const f = document.querySelector("dialog.evidence-modal .model-frame.is-error"); const im = f?.querySelector(".model-poster"); return !!f && im?.complete && im.naturalWidth > 0 && /No se pudo mostrar/.test(f.textContent) && /en proceso/.test(f.querySelector(".model-badge")?.textContent || ""); }, null, 8000);
       ok("V6.16 sin WebGL: se queda la imagen del brazo con un aviso y la etiqueta, y el modelo no se descarga", fallback && req16n.length === 0 && err16n.length === 0, JSON.stringify({ fallback, req16n, err16n }));
       await bNoGL.close();
+
+      // ---------- V6.22: el visor del brazo, fluido ----------
+      // Hasta la V6.21 el marco del modelo detenía el aviso de «soltar» y OrbitControls (que lo escucha en el
+      // documento) creía que el dedo o el botón seguían abajo: el segundo toque se leía como un pellizco y, con el
+      // ratón, el modelo seguía al puntero sin presionar. Además la luz se generaba al abrir el visor.
+      // Cuenta lo que se dibuja en el lienzo del modelo (no en el universo de atrás).
+      const countDraws = () => {
+        window.__mvDraws = 0;
+        for (const C of [WebGLRenderingContext, WebGL2RenderingContext]) {
+          for (const fn of ["drawElements", "drawArrays"]) {
+            const orig = C.prototype[fn];
+            C.prototype[fn] = function (...a) { if (this.canvas?.classList?.contains("model-canvas")) window.__mvDraws++; return orig.apply(this, a); };
+          }
+        }
+      };
+      const touch = (cdp) => (type, x, y) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: type === "touchEnd" ? [] : [{ x, y, id: 1 }] });
+
+      // Escritorio: tras soltar, la inercia termina sola y mover el ratón sin botón no gira el modelo; la luz
+      // precalculada se pide una sola vez aunque se vuelva a abrir.
+      {
+        const ctx = await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "es-MX" });
+        const p = await ctx.newPage();
+        const errs = [], reqs = [];
+        watch(p, errs);
+        modelReqs(p, reqs);
+        await p.addInitScript(countDraws);
+        await p.goto(BASE + "/proyecto/vr-nave", { waitUntil: "networkidle" });
+        await until(p, () => !!document.querySelector(".sheet h2"), null, 15000);
+        await uiRest(p);
+        const btn = p.getByRole("button", { name: "Ver modelo 3D", exact: true });
+        await btn.click();
+        const ready = await until(p, () => !!document.querySelector("dialog.evidence-modal .model-frame.is-ready"), null, 60000);
+        const c = (await modelState(p)).canvas;
+        const cx = c.l + c.w / 2, cy = c.t + c.h / 2;
+        await p.mouse.move(cx - 75, cy);
+        await p.mouse.down();
+        for (let i = 1; i <= 10; i++) { await p.mouse.move(cx - 75 + i * 15, cy); await p.waitForTimeout(16); }
+        await p.mouse.up();
+        await p.waitForTimeout(2500); // la inercia dura medio segundo
+        const d0 = await p.evaluate(() => window.__mvDraws);
+        await p.waitForTimeout(1000);
+        const idle = (await p.evaluate(() => window.__mvDraws)) - d0;
+        const s1 = await canvasSig(p).catch(() => null);
+        for (let i = 1; i <= 10; i++) { await p.mouse.move(cx + 75 - i * 20, cy + i * 5); await p.waitForTimeout(16); }
+        await p.waitForTimeout(600);
+        const follow = sigDiff(s1, await canvasSig(p).catch(() => null));
+        ok("V6.22 visor 3D (ratón): al soltar, la inercia termina sola y mover el ratón sin botón ya no gira el modelo", ready && idle === 0 && follow >= 0 && follow < 0.5, JSON.stringify({ ready, idle, follow: +follow.toFixed(2) }));
+        await p.keyboard.press("Escape");
+        await until(p, () => !document.querySelector("dialog[open]"), null, 4000);
+        await btn.click();
+        const ready2 = await until(p, () => !!document.querySelector("dialog.evidence-modal .model-frame.is-ready"), null, 60000);
+        const env = reqs.filter((u) => u.endsWith("/modelos/entorno-estudio.bin")).length;
+        ok("V6.22 visor 3D: la luz llega precalculada (entorno-estudio.bin) y no se vuelve a pedir al abrirlo otra vez", ready2 && env === 1 && errs.length === 0, JSON.stringify({ ready2, env, reqs, errs }));
+        await ctx.close();
+      }
+
+      // Celular: gira con el dedo, al soltar deja de dibujarse y el segundo arrastre también gira, sin saltos de tamaño.
+      {
+        const ctx = await browser.newContext({ viewport: { width: 411, height: 891 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2, locale: "es-MX" });
+        const p = await ctx.newPage();
+        const errs = [];
+        watch(p, errs);
+        await p.addInitScript(countDraws);
+        await p.goto(BASE + "/proyecto/vr-nave", { waitUntil: "load" });
+        await until(p, () => !!document.querySelector(".sheet h2"), null, 15000);
+        await uiRest(p);
+        await p.getByRole("button", { name: "Ver modelo 3D", exact: true }).tap();
+        const ready = await until(p, () => !!document.querySelector("dialog.evidence-modal .model-frame.is-ready"), null, 60000);
+        const c = (await modelState(p)).canvas;
+        const t = touch(await ctx.newCDPSession(p));
+        const cx = c.l + c.w / 2, cy = c.t + c.h / 2;
+        const drag = async () => { await t("touchStart", cx - 70, cy); for (let i = 1; i <= 12; i++) { await t("touchMove", cx - 70 + Math.round((140 * i) / 12), cy); await p.waitForTimeout(30); } await t("touchEnd"); };
+        await t("touchStart", cx, cy); await p.waitForTimeout(80); await t("touchEnd"); // un toque: deja de girar solo
+        await p.waitForTimeout(800);
+        const s0 = await canvasSig(p).catch(() => null);
+        const lit0 = await litShare(p).catch(() => 0);
+        await drag();
+        const d1 = await p.evaluate(() => window.__mvDraws);
+        await p.waitForTimeout(1500);
+        const after1 = (await p.evaluate(() => window.__mvDraws)) - d1;
+        const s1 = await canvasSig(p).catch(() => null);
+        await drag();
+        await p.waitForTimeout(800);
+        const s2 = await canvasSig(p).catch(() => null);
+        const size = lit0 ? (await litShare(p).catch(() => 0)) / lit0 : 0;
+        const count = (await modelState(p)).count;
+        const turn1 = sigDiff(s0, s1), turn2 = sigDiff(s1, s2);
+        ok("V6.22 visor 3D (dedo): gira con el dedo, al soltar deja de dibujarse y el segundo arrastre también gira, sin saltos de tamaño", ready && turn1 > 2 && after1 === 0 && turn2 > 2 && size > 0.6 && size < 1.6 && count === "3 / 3" && errs.length === 0, JSON.stringify({ ready, turn1: +turn1.toFixed(1), after1, turn2: +turn2.toFixed(1), size: +size.toFixed(2), count, errs }));
+        await ctx.close();
+      }
+
+      // Deslizar sobre una imagen sigue pasando de evidencia: solo el gesto sobre el modelo dejó de contar.
+      {
+        const ctx = await browser.newContext({ viewport: { width: 411, height: 891 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2, locale: "es-MX" });
+        const p = await ctx.newPage();
+        await p.goto(BASE + "/proyecto/vr-nave", { waitUntil: "load" });
+        await until(p, () => !!document.querySelector(".sheet h2"), null, 15000);
+        await uiRest(p);
+        await p.getByRole("button", { name: "Ver imagen", exact: true }).tap();
+        await p.waitForSelector("dialog.evidence-modal[open] .evidence-frame img");
+        const before = (await modelState(p)).count;
+        const b = await p.locator("dialog.evidence-modal .evidence-frame").boundingBox();
+        const t = touch(await ctx.newCDPSession(p));
+        await t("touchStart", b.x + b.width / 2 + 80, b.y + b.height / 2);
+        for (let i = 1; i <= 8; i++) { await t("touchMove", b.x + b.width / 2 + 80 - i * 20, b.y + b.height / 2); await p.waitForTimeout(20); }
+        await t("touchEnd");
+        const next = await until(p, () => document.querySelector(".evidence-count [aria-hidden]")?.textContent.replace(/\s+/g, " ").trim() === "3 / 3", null, 3000);
+        ok("V6.22 visor: deslizar el dedo sobre una imagen sigue pasando a la evidencia siguiente", before === "2 / 3" && next, JSON.stringify({ before }));
+        await ctx.close();
+      }
+
+      // Si la luz precalculada no llega, el visor la genera como antes y el modelo se ve.
+      {
+        const ctx = await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "es-MX", reducedMotion: "reduce" });
+        await ctx.route(/\/modelos\/entorno-estudio\.bin$/, (r) => r.abort());
+        const p = await ctx.newPage();
+        const errs = [];
+        p.on("pageerror", (e) => errs.push(e.message));
+        await p.goto(BASE + "/proyecto/vr-nave", { waitUntil: "networkidle" });
+        await until(p, () => !!document.querySelector(".sheet h2"), null, 15000);
+        await uiRest(p);
+        await p.getByRole("button", { name: "Ver modelo 3D", exact: true }).click();
+        const ready = await until(p, () => !!document.querySelector("dialog.evidence-modal .model-frame.is-ready"), null, 60000);
+        await p.waitForTimeout(800);
+        const lit = ready ? await litShare(p).catch(() => 0) : 0;
+        ok("V6.22 visor 3D: si la luz precalculada no llega, se genera como antes y el modelo se ve", ready && lit > 0.06 && errs.length === 0, JSON.stringify({ ready, lit: +lit.toFixed(3), errs }));
+        await ctx.close();
+      }
     }
 
     // ---------- V6.16: Esc en pantalla completa cierra lo de encima y no saca de pantalla completa ----------
@@ -2369,6 +2497,203 @@ function glCounters() {
       await until(page, () => !document.querySelector(".topbar").classList.contains("is-hidden"), null, 4000);
       const g2 = await geo();
       ok(`V6.5 ${w}×${h} ${lang.toUpperCase()}: la barra cabe completa al bajar`, g2.barra && g2.ancho <= g2.ventana, JSON.stringify(g2));
+      await ctx.close();
+    }
+  }
+
+  // ---------- V6.22: CV con red inestable, posición al salir de pantalla completa y anillo de foco ----------
+  {
+    // CV: un fallo de red o un 403 en la comprobación ya no los dejan como «pendiente» toda la visita; un 404 sí.
+    const cvCase = async (mode) => {
+      const ctx = await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "es-MX" });
+      await ctx.route(/\.pdf$/, (route) => {
+        if (route.request().method() !== "HEAD") return route.continue();
+        if (mode === "red") return route.abort("internetdisconnected");
+        return route.fulfill({ status: mode, contentType: "text/html", body: "" });
+      });
+      const p = await ctx.newPage();
+      await p.goto(BASE + "/", { waitUntil: "networkidle" });
+      await p.waitForTimeout(800);
+      const r = await p.evaluate(() => ({ links: document.querySelectorAll('a[download][href$=".pdf"]').length, pending: document.querySelectorAll(".is-unavailable").length }));
+      await ctx.close();
+      return r;
+    };
+    const red = await cvCase("red"), f403 = await cvCase(403), f404 = await cvCase(404);
+    ok("V6.22 CV: sin red o con un 403 en la comprobación, los botones siguen descargando; con un 404, «pendiente»", red.links >= 2 && red.pending === 0 && f403.links >= 2 && f403.pending === 0 && f404.links === 0 && f404.pending >= 2, JSON.stringify({ red, f403, f404 }));
+
+    // Pantalla completa: al salir, la página vuelve al mismo punto (antes subía unos 260 px), con la API del
+    // navegador y con el modo CSS, que es el que usa el iPhone.
+    const noFsApi = () => { delete Element.prototype.requestFullscreen; delete Document.prototype.exitFullscreen; Object.defineProperty(Document.prototype, "fullscreenElement", { get: () => null }); };
+    for (const [label, opts, noApi] of [
+      ["escritorio", { viewport: { width: 1366, height: 768 } }, false],
+      ["modo CSS, celular", { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 }, true],
+    ]) {
+      const ctx = await browser.newContext({ ...opts, locale: "es-MX" });
+      if (noApi) await ctx.addInitScript(noFsApi);
+      const p = await ctx.newPage();
+      await p.goto(BASE + "/", { waitUntil: "load" });
+      await p.getByRole("link", { name: /Explorar mis proyectos/ }).first().click();
+      await scrollRest(p);
+      await until(p, () => !!document.querySelector("canvas.u-canvas") && !document.querySelector(".universe-status"), null, 30000);
+      await p.waitForTimeout(500);
+      const y0 = await p.evaluate(() => Math.round(scrollY));
+      const fsBtn = p.getByRole("button", { name: "Pantalla completa" }).first();
+      await (noApi ? fsBtn.tap() : fsBtn.click());
+      const inFs = await until(p, () => !!document.querySelector(".universe-wrap.is-fullscreen"), null, 8000);
+      await p.waitForTimeout(500);
+      await p.keyboard.press("Escape");
+      const left = await until(p, () => !document.querySelector(".universe-wrap.is-fullscreen") && !document.fullscreenElement, null, 8000);
+      await p.waitForTimeout(500);
+      const y1 = await p.evaluate(() => Math.round(scrollY));
+      ok(`V6.22 pantalla completa (${label}): al salir, la página queda en el mismo punto`, inFs && left && Math.abs(y1 - y0) <= 2, JSON.stringify({ y0, y1 }));
+      await ctx.close();
+    }
+
+    // Anillo de foco: oro oscuro sobre el papel (el oro claro daba 1.8:1), oro claro en el tema oscuro y, en el
+    // universo, dorado con un borde de noche para que se vea también sobre la nebulosa clara.
+    for (const scheme of ["light", "dark"]) {
+      const ctx = await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "es-MX", colorScheme: scheme });
+      const p = await ctx.newPage();
+      await p.goto(BASE + "/", { waitUntil: "load" });
+      // Con las fuentes del sitio (V6.23) el evento «load» puede llegar antes de que React pinte: se espera a la página.
+      await until(p, () => !!document.querySelector(".hero .lang button") && !!document.querySelector(".universe-tools .chip-btn"), null, 10000);
+      await p.keyboard.press("Tab");
+      await p.keyboard.press("Tab"); // ES, junto al nombre
+      const head = await p.evaluate(() => { const a = document.activeElement; return { txt: a.textContent.trim(), fv: a.matches(":focus-visible"), color: getComputedStyle(a).outlineColor }; });
+      const chip = await p.evaluate(() => { const el = document.querySelector(".universe-tools .chip-btn"); el.focus(); const s = getComputedStyle(el); return { fv: el.matches(":focus-visible"), color: s.outlineColor, shadow: s.boxShadow }; });
+      const expected = scheme === "light" ? "rgb(154, 106, 28)" : "rgb(233, 195, 114)";
+      ok(`V6.22 foco, tema ${scheme === "light" ? "claro" : "oscuro"}: anillo ${scheme === "light" ? "oro oscuro" : "oro claro"} en el inicio y dorado con borde de noche en el universo`, head.fv && head.color === expected && chip.fv && chip.color === "rgb(226, 176, 74)" && /rgb\(20, 29, 54\) 0px 0px 0px 8px/.test(chip.shadow), JSON.stringify({ head, chip }));
+      await ctx.close();
+    }
+  }
+
+  // ---------- V6.23: Atrás cierra la ficha y sale de pantalla completa, fuentes del sitio y arranque del universo ----------
+  {
+    const st = (pg) => pg.evaluate(() => ({ path: location.pathname, sheet: !!document.querySelector(".sheet"), fs: !!document.querySelector(".universe-wrap.is-fullscreen") }));
+    const back = async (pg) => { await pg.goBack({ waitUntil: "commit" }).catch(() => {}); await pg.waitForTimeout(700); };
+    // Se llega al inicio desde /video con el enlace «Volver al inicio», como lo haría una persona: si Atrás
+    // sacara de la página, terminaría en /video.
+    const fromVideo = async (ctxOpts, init) => {
+      const ctx = await browser.newContext({ locale: "es-MX", ...ctxOpts });
+      if (init) await ctx.addInitScript(init);
+      const p = await ctx.newPage();
+      const errs = [];
+      watch(p, errs);
+      await p.goto(BASE + "/video", { waitUntil: "load" });
+      await p.locator(".page-actions a.btn-ghost").click();
+      await until(p, () => location.pathname === "/" && !!document.querySelector("#universo"), null, 8000);
+      await p.evaluate(() => document.querySelector("#universo").scrollIntoView());
+      await until(p, () => !!document.querySelector("canvas.u-canvas") && !document.querySelector(".universe-status"), null, 30000);
+      await p.waitForTimeout(400);
+      return { ctx, p, errs };
+    };
+
+    // Escritorio: abrir una ficha, pasar por dos planetas más y un solo Atrás la cierra sin salir; Adelante la reabre.
+    {
+      const { ctx, p, errs } = await fromVideo({ viewport: { width: 1366, height: 820 } });
+      await p.locator(".planet-index button").first().click();
+      await until(p, () => !!document.querySelector(".sheet h2"), null, 8000);
+      await uiRest(p);
+      for (let i = 0; i < 2; i++) { await p.keyboard.press("ArrowRight"); await p.waitForTimeout(600); }
+      const open = await st(p);
+      await back(p);
+      const b1 = await st(p);
+      await p.goForward({ waitUntil: "commit" }).catch(() => {});
+      await p.waitForTimeout(800);
+      const f1 = await st(p);
+      ok("V6.23 Atrás con la ficha abierta (tras ver tres planetas): un solo Atrás la cierra y sigue en el portafolio; Adelante la reabre", /^\/proyecto\//.test(open.path) && open.sheet && b1.path === "/" && !b1.sheet && /^\/proyecto\//.test(f1.path) && f1.sheet && errs.length === 0, JSON.stringify({ open, b1, f1, errs }));
+      // Cerrar con la X no deja entradas de más: el Atrás siguiente ya lleva a /video.
+      await p.locator(".sheet .sheet-close").click();
+      await until(p, () => !document.querySelector(".sheet"), null, 4000);
+      await p.waitForTimeout(600);
+      const closed = await st(p);
+      await back(p);
+      ok("V6.23 cerrar la ficha con la X deja la dirección en «/» y el Atrás siguiente sale a la página anterior (sin entradas repetidas)", closed.path === "/" && !closed.sheet && (await st(p)).path === "/video", JSON.stringify({ closed, after: await st(p) }));
+      await ctx.close();
+    }
+
+    // Escritorio: Atrás en pantalla completa sale de ella y la página queda donde estaba.
+    {
+      const { ctx, p } = await fromVideo({ viewport: { width: 1366, height: 768 } });
+      const y0 = await p.evaluate(() => Math.round(scrollY));
+      await p.getByRole("button", { name: "Pantalla completa" }).first().click();
+      const inFs = await until(p, () => !!document.querySelector(".universe-wrap.is-fullscreen"), null, 5000);
+      await p.waitForTimeout(500);
+      await back(p);
+      const s = await st(p);
+      const y1 = await p.evaluate(() => Math.round(scrollY));
+      ok("V6.23 Atrás en pantalla completa sale de ella, sigue en el portafolio y en el mismo punto", inFs && s.path === "/" && !s.fs && Math.abs(y1 - y0) <= 2, JSON.stringify({ s, y0, y1 }));
+      await ctx.close();
+    }
+
+    // Celular en el modo con CSS (iPhone): ficha en pantalla completa; Atrás cierra las dos y el siguiente sale.
+    {
+      const noFsApi = () => { delete Element.prototype.requestFullscreen; delete Document.prototype.exitFullscreen; Object.defineProperty(Document.prototype, "fullscreenElement", { get: () => null }); };
+      const { ctx, p } = await fromVideo({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 }, noFsApi);
+      await p.getByRole("button", { name: "Pantalla completa" }).first().tap();
+      await until(p, () => !!document.querySelector(".universe-wrap.is-fullscreen"), null, 5000);
+      await p.locator(".planet-index button").nth(2).tap();
+      await until(p, () => !!document.querySelector(".sheet h2"), null, 8000);
+      await p.waitForTimeout(600);
+      const open = await st(p);
+      await back(p);
+      const b1 = await st(p);
+      await back(p);
+      ok("V6.23 celular (modo CSS): Atrás cierra la ficha y la pantalla completa sin salir del sitio; el siguiente Atrás sale", open.sheet && open.fs && b1.path === "/" && !b1.sheet && !b1.fs && (await st(p)).path === "/video", JSON.stringify({ open, b1, after: await st(p) }));
+      await ctx.close();
+    }
+
+    // Enlace directo a una ficha: al cerrarla la dirección pasa a «/».
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "es-MX" });
+      const p = await ctx.newPage();
+      await p.goto(BASE + "/proyecto/mealflow", { waitUntil: "load" });
+      await until(p, () => !!document.querySelector(".sheet h2"), null, 15000);
+      await uiRest(p);
+      await p.keyboard.press("Escape");
+      const closed = await until(p, () => !document.querySelector(".sheet") && location.pathname === "/", null, 4000);
+      ok("V6.23 enlace directo a una ficha: al cerrarla la dirección queda en «/»", closed, JSON.stringify(await st(p)));
+      await ctx.close();
+    }
+
+    // Fuentes del sitio: nada se pide a Google, las dos tipografías se cargan del propio sitio y la política no se queja.
+    {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3, locale: "es-MX" });
+      const p = await ctx.newPage();
+      const google = [], fonts = [], csp = [];
+      p.on("request", (r) => { if (/fonts\.(googleapis|gstatic)\.com/.test(r.url())) google.push(r.url()); });
+      p.on("response", (r) => { if (/\.woff2$/.test(r.url())) fonts.push(`${r.status()} ${r.url().replace(BASE, "").replace(/-[\w-]{8}\.woff2$/, ".woff2")}`); });
+      await p.addInitScript(() => document.addEventListener("securitypolicyviolation", (e) => (window.__csp23 = [...(window.__csp23 || []), `${e.violatedDirective} ${e.blockedURI}`])));
+      await p.goto(BASE + "/", { waitUntil: "load" });
+      await p.evaluate(() => document.fonts.ready);
+      const faces = await p.evaluate(() => [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family.replace(/"/g, "")));
+      const cspV = await p.evaluate(() => window.__csp23 || []);
+      ok("V6.23 fuentes: Fraunces y Nunito Sans se cargan del propio sitio (precargadas), nada se pide a Google y la política no bloquea nada", google.length === 0 && faces.includes("Fraunces") && faces.includes("Nunito Sans") && fonts.length >= 2 && fonts.every((f) => f.startsWith("200 /assets/")) && cspV.length === 0, JSON.stringify({ google, faces, fonts, cspV }));
+      // Arranque del universo en celular: sin bajar, se prepara solo en tiempo libre; el lienzo y las etiquetas entran
+      // a la página con su primer cuadro (antes había un rectángulo negro y etiquetas en la esquina mientras tanto).
+      const booted = await until(p, () => !!document.querySelector("canvas.u-canvas") && !document.querySelector(".universe-status"), null, 20000);
+      ok("V6.23 universo en celular: sin bajar, arranca solo después de cargar la página", booted);
+      await ctx.close();
+    }
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1366, height: 820 }, locale: "es-MX" });
+      await ctx.addInitScript(() => {
+        new MutationObserver((list, obs) => {
+          for (const m of list) for (const n of m.addedNodes) {
+            if (n.classList?.contains("u-canvas")) {
+              const label = document.querySelector(".u-labels .u-label");
+              window.__mount23 = { labelsIn: !!label?.isConnected, placed: !!label?.style.transform };
+              obs.disconnect();
+            }
+          }
+        }).observe(document, { childList: true, subtree: true });
+      });
+      const p = await ctx.newPage();
+      await p.goto(BASE + "/", { waitUntil: "load" });
+      await p.evaluate(() => document.querySelector("#universo").scrollIntoView());
+      await until(p, () => !!document.querySelector("canvas.u-canvas") && !document.querySelector(".universe-status"), null, 30000);
+      const mount = await p.evaluate(() => window.__mount23 || null);
+      ok("V6.23 universo: el lienzo entra a la página ya con su primer cuadro y las etiquetas en su sitio", !!mount && mount.labelsIn && mount.placed, JSON.stringify(mount));
       await ctx.close();
     }
   }

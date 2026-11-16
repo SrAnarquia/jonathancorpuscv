@@ -20,6 +20,23 @@ export function useFullscreen(ref, { onNativeExit } = {}) {
   const nativeExit = useRef(onNativeExit);
   nativeExit.current = onNativeExit;
 
+  // Al salir se vuelve al mismo punto de la página (V6.22). Mientras dura, el contenedor es `position: fixed` y
+  // deja de ocupar su lugar: la página se acorta y el navegador recorta el desplazamiento, así que al salir la
+  // página quedaba cientos de píxeles más arriba (en iPhone siempre, por el modo con CSS). Al entrar se anota
+  // dónde estaba el contenedor en la ventana y, ya fuera de pantalla completa, se desplaza para que vuelva ahí
+  // (también si mientras tanto se giró el celular).
+  const anchor = useRef(null);
+  const restoreScroll = useCallback(() => {
+    const top = anchor.current;
+    const el = ref.current;
+    if (top == null || document.fullscreenElement) return; // la salida nativa todavía no termina
+    if (el?.isConnected && getComputedStyle(el).position === "fixed") return; // aún no vuelve a su lugar
+    anchor.current = null;
+    if (!el?.isConnected) return;
+    const delta = el.getBoundingClientRect().top - top;
+    if (Math.abs(delta) >= 1) window.scrollTo(window.scrollX, window.scrollY + delta);
+  }, [ref]);
+
   const unlockEsc = useCallback(() => {
     if (!locked.current) return;
     locked.current = false;
@@ -41,6 +58,7 @@ export function useFullscreen(ref, { onNativeExit } = {}) {
   const enter = useCallback(() => {
     const el = ref.current;
     if (!el) return;
+    if (!want.current) anchor.current = el.getBoundingClientRect().top;
     want.current = true;
     setActive(true);
     if (el.requestFullscreen) el.requestFullscreen({ navigationUI: "hide" }).then(lockEsc, () => {});
@@ -66,6 +84,8 @@ export function useFullscreen(ref, { onNativeExit } = {}) {
         setActive(false);
         want.current = false;
         unlockEsc();
+        // Si la página ya había salido (exit()), aquí termina la salida nativa: se vuelve al mismo punto.
+        requestAnimationFrame(restoreScroll);
         // Sin Keyboard Lock, el Esc que sacó de pantalla completa no llegó a la página: se cierra también
         // lo que estaba abierto encima. Si la página sí recibió el Esc, ya lo atendió ella.
         if (byBrowser && !hadLock && performance.now() - lastEsc.current > 600) nativeExit.current?.();
@@ -78,13 +98,16 @@ export function useFullscreen(ref, { onNativeExit } = {}) {
       document.removeEventListener("fullscreenchange", onChange);
       window.removeEventListener("keydown", onKey, true);
     };
-  }, [unlockEsc]);
+  }, [unlockEsc, restoreScroll]);
 
-  // Mientras dure, la página no se desplaza (candado compartido con el reproductor de video).
+  // Mientras dure, la página no se desplaza (candado compartido con el reproductor de video). Al terminar,
+  // con el contenedor ya de vuelta en su lugar, se recupera la posición (en la salida nativa, si el navegador
+  // todavía no salió, lo hace el aviso `fullscreenchange`).
   useEffect(() => {
-    if (!active) return;
-    return lockScroll();
-  }, [active]);
+    if (active) return lockScroll();
+    restoreScroll();
+    return undefined;
+  }, [active, restoreScroll]);
 
   return { active, enter, exit, toggle: active ? exit : enter };
 }
