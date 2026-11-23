@@ -165,7 +165,7 @@ Si añades otro proveedor de video (Vimeo, por ejemplo), hay que permitir su dom
 
 El video de presentación se muestra en la página `/video` (embebido, como en la primera versión del sitio) y en la ficha de la nave (en una ventana). Se configura una sola vez:
 
-En `src/data/profile.js`, `presentationVideo` acepta exactamente las mismas fuentes que un video de evidencia. Hoy apunta al video de YouTube que ya tenías (`kB4uux4evWQ`). Para usar un archivo propio:
+En `src/data/profile.js`, `presentationVideo` acepta exactamente las mismas fuentes que un video de evidencia. Desde la versión 6.25 apunta a tu Short de YouTube (`pnm3U1Q0YV8`), marcado con `vertical: true`: el reproductor se angosta a 9:16 y toma el alto de la pantalla, y «Abrir en YouTube» lo abre como Short. Si algún día vuelves a un video horizontal, quita `vertical: true`. Para usar un archivo propio:
 
 ```js
 presentationVideo: { type: "file", src: "/videos/presentacion.mp4", poster: "/videos/presentacion.jpg", title: "Video de presentación de Jonathan Corpus" },

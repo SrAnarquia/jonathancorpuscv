@@ -34,9 +34,11 @@ export const PROFILE = {
   },
   // Video de presentación personal. Mismo formato que los videos de evidencia
   // (ver src/lib/video.js y docs/CONTENIDO.md). Usa null si todavía no existe.
+  // vertical: true para videos 9:16 (Shorts de YouTube): el reproductor se angosta y toma el alto de la pantalla.
   presentationVideo: {
     type: "youtube",
-    id: "kB4uux4evWQ",
+    id: "pnm3U1Q0YV8",
+    vertical: true,
     title: "Video de presentación de Jonathan Corpus",
   },
 };

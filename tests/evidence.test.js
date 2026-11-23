@@ -18,7 +18,7 @@ test("sin evidencias → lista vacía (la sección no se muestra)", () => {
 test("primero los videos, después las imágenes; con pie y texto alternativo", () => {
   const items = evidenceItems({ images: [img(1), img(2)], videos: [yt] });
   assert.deepEqual(items.map((it) => it.kind), ["video", "image", "image"]);
-  assert.equal(items[0].source.src, "https://www.youtube-nocookie.com/embed/TdU0hq1quLo?rel=0");
+  assert.equal(items[0].source.src, "https://www.youtube-nocookie.com/embed/TdU0hq1quLo?rel=0&playsinline=1");
   assert.equal(items[0].caption, "Demo");
   assert.deepEqual(items[1], { kind: "image", src: "/images/proyectos/x/1.jpg", alt: "alt 1", caption: "pie 1" });
   assert.deepEqual(evidenceSummary(items), { videos: 1, images: 2, models: 0, firstVideo: 0, firstImage: 1, firstModel: -1 });

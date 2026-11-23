@@ -980,9 +980,9 @@ function glCounters() {
     ok("/nave abre la ficha de la nave", (await page.locator(".sheet h2").textContent()).includes("La nave"));
     await page.goto(BASE + "/video", { waitUntil: "networkidle" });
     await page.waitForSelector("#video");
-    ok("/video es una página propia con el video de presentación embebido (YouTube)", await page.locator(".universe").count() === 0 && await page.locator("dialog").count() === 0 && await page.locator("#video iframe[src*='youtube-nocookie.com/embed/kB4uux4evWQ']").count() === 1);
+    ok("/video es una página propia con el video de presentación embebido (YouTube)", await page.locator(".universe").count() === 0 && await page.locator("dialog").count() === 0 && await page.locator("#video iframe[src*='youtube-nocookie.com/embed/pnm3U1Q0YV8']").count() === 1);
     ok("/video: barra de navegación visible y contacto debajo", await page.locator(".topbar").isVisible() && await page.locator("#contacto").isVisible());
-    ok("/video: enlace para abrirlo en YouTube", await page.locator("#video a[href*='youtube.com/watch?v=kB4uux4evWQ']").count() === 1);
+    ok("/video: enlace para abrirlo en YouTube (como Short)", await page.locator("#video a[href='https://www.youtube.com/shorts/pnm3U1Q0YV8']").count() === 1);
     ok("/video: título del documento", (await page.title()).includes("Video de presentación"));
     await page.goto(BASE + "/sobremi", { waitUntil: "networkidle" });
     await page.waitForSelector("#video");
@@ -1889,6 +1889,46 @@ function glCounters() {
     const s3 = await where();
     ok(`V6.13 ${label}: «Volver al inicio» deja en el encabezado de la página principal (no en su pie)`, s3.path === "/#perfil" && Math.abs(s3.hero) < 4, JSON.stringify(s3));
     ok(`V6.13 ${label}: enlaces del video sin errores`, errors.length === 0, errors.join(" | "));
+    await ctx.close();
+  }
+
+  // V6.25: el video de presentación es vertical (Short de YouTube). La página /video y la ventana del reproductor lo
+  // muestran en 9:16, completo dentro de la pantalla, sin desbordes y con «Abrir en YouTube» a la vista.
+  for (const [w, h, mobile] of [[1366, 768, false], [390, 844, true], [851, 393, true]]) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: h }, locale: "es-MX", ...(mobile ? { isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : {}) });
+    const page = await ctx.newPage();
+    const errors = [];
+    watch(page, errors);
+    await fakeYouTube(page);
+    const label = `${mobile ? "celular" : "PC"} ${w}×${h}`;
+    await page.goto(BASE + "/video", { waitUntil: "networkidle" });
+    await page.waitForSelector("#video .video-frame iframe");
+    const p = await page.evaluate(() => {
+      const f = document.querySelector("#video .video-frame").getBoundingClientRect();
+      const c = document.querySelector("#video .videopage-player").getBoundingClientRect();
+      const de = document.documentElement;
+      return { w: Math.round(f.width), h: Math.round(f.height), left: c.left, right: c.right, bottom: Math.round(c.bottom), y: scrollY, vw: de.clientWidth, vh: innerHeight, over: de.scrollWidth - de.clientWidth };
+    });
+    ok(`V6.25 ${label}: /video muestra el video vertical (9:16)`, Math.abs(p.w / p.h - 9 / 16) < 0.012, JSON.stringify(p));
+    ok(`V6.25 ${label}: /video, el video cabe completo en la pantalla, sin desborde a los lados`, p.h <= p.vh && p.left >= 0 && p.right <= p.vw + 0.5 && p.over <= 0, JSON.stringify(p));
+    // En PC el video va junto al título: al llegar se ve entero, con su pie, sin bajar.
+    if (!mobile) ok(`V6.25 ${label}: /video, al llegar el video y «Abrir en YouTube» se ven sin bajar`, p.y === 0 && p.bottom <= p.vh, JSON.stringify(p));
+    await page.goto(BASE + "/nave", { waitUntil: "networkidle" });
+    await page.waitForSelector(".sheet h2");
+    await uiRest(page);
+    const btn = page.getByRole("button", { name: /video de presentación/ });
+    await (mobile ? btn.tap() : btn.click());
+    await page.waitForSelector("dialog.video-modal[open] iframe");
+    await uiRest(page);
+    const m = await page.evaluate(() => {
+      const f = document.querySelector("dialog.video-modal .video-frame").getBoundingClientRect();
+      const b = document.querySelector("dialog.video-modal .video-box").getBoundingClientRect();
+      const a = document.querySelector("dialog.video-modal .video-foot a")?.getBoundingClientRect();
+      return { w: Math.round(f.width), h: Math.round(f.height), box: [b.left, b.top, b.right, b.bottom].map(Math.round), link: a ? Math.round(a.bottom) : null, vw: innerWidth, vh: innerHeight };
+    });
+    ok(`V6.25 ${label}: el reproductor muestra el video vertical (9:16)`, Math.abs(m.w / m.h - 9 / 16) < 0.012, JSON.stringify(m));
+    ok(`V6.25 ${label}: la ventana del video cabe en la pantalla, con «Abrir en YouTube» a la vista`, m.box[0] >= 0 && m.box[1] >= 0 && m.box[2] <= m.vw && m.box[3] <= m.vh && m.link !== null && m.link <= m.vh, JSON.stringify(m));
+    ok(`V6.25 ${label}: video vertical sin errores`, errors.length === 0, errors.join(" | "));
     await ctx.close();
   }
 

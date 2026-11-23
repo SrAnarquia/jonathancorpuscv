@@ -24,7 +24,7 @@ export default function VideoPage() {
   }, [t]);
 
   return (
-    <section id="video" className="videopage" aria-labelledby="videopage-title">
+    <section id="video" className={video?.vertical ? "videopage is-vertical" : "videopage"} aria-labelledby="videopage-title">
       <div className="videopage-head">
         <p className="eyebrow">{t("videoPage.eyebrow")}</p>
         <h2 id="videopage-title">{t("videoPage.title")}</h2>
@@ -33,7 +33,7 @@ export default function VideoPage() {
 
       {video ? (
         <div className="videopage-player">
-          <div className="video-frame">
+          <div className={video.vertical ? "video-frame is-vertical" : "video-frame"}>
             {video.kind === "native" ? (
               <video controls playsInline preload="metadata" poster={video.poster} src={video.src}>
                 {t("video.unsupported")}

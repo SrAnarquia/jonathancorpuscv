@@ -31,13 +31,13 @@ export default function VideoModal({ source, title, onClose }) {
 
   return (
     <dialog ref={dialogRef} className="video-modal" aria-labelledby="video-title" onCancel={onCancel} onClick={onBackdrop}>
-      <div className="video-box">
+      <div className={source.vertical ? "video-box is-vertical" : "video-box"}>
         <header className="video-head">
           <h2 id="video-title">{title}</h2>
           <button type="button" className="icon-btn" onClick={close} aria-label={t("video.close")} autoFocus><IconClose /></button>
         </header>
 
-        <div className="video-frame">
+        <div className={source.vertical ? "video-frame is-vertical" : "video-frame"}>
           {status === "loading" && <p className="video-status" role="status">{t("video.loading")}</p>}
           {status === "error" && (
             <div className="video-status is-error" role="alert">
