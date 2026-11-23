@@ -27,7 +27,7 @@ Las filas 1 a 8 están publicadas y la reauditoría las confirmó en producción
 | 11 | Tu Short `pnm3U1Q0YV8` como video de presentación, vertical (9:16) en la página «Video» y en la ventana de la nave | V6.25 | 9:16, completo en la pantalla y sin desbordes en PC (1366×768), celular (390×844) y celular acostado (851×393), con «Abrir en YouTube» a la vista |
 | 12 | Los CV con tu foto nueva | V6.25 | El mismo texto que los anteriores; solo cambia la foto |
 
-Pruebas de la V6.25: unitarias 48/48, e2e 460/461 (la que falla, de cambio de idioma, pasa sola; ver la sección 6.25) y build. El detalle de cada cambio está en la sección de su versión, abajo. Siguen pendientes R-02 (Adelante reabre la ficha sin llevar la vista al universo), H-08 a H-30 y el aviso de H-22 para las rutas inexistentes.
+Pruebas de la V6.25: unitarias 48/48, e2e 460/461 y build. La que falla, de cambio de idioma, también falla a veces en la V6.24 (ver la sección 6.25). El detalle de cada cambio está en la sección de su versión, abajo. Siguen pendientes R-02 (Adelante reabre la ficha sin llevar la vista al universo), H-08 a H-30 y el aviso de H-22 para las rutas inexistentes.
 
 ### Cómo publicarla
 
@@ -71,7 +71,7 @@ Pruebas:
 
 - Unitarias: 48/48 (`npm test`).
 - e2e: 460/461 en la corrida completa, contra el servidor con las cabeceras de producción: las 445 de antes y 16 del video vertical (página «Video» y ventana de la nave en PC 1366×768, celular 390×844 y celular acostado 851×393: 9:16, completo en la pantalla, sin desbordes y con «Abrir en YouTube» a la vista), todas bien.
-- La que falla es «V6.5: cambiar de idioma en el recorrido» (ES → EN → ES en la barra): dentro de la corrida completa falló las 3 veces, pero sola pasa siempre, en esta versión y en la V6.24, y no toca nada de lo que cambió. Queda anotada para revisarla aparte.
+- La que falla es «V6.5: cambiar de idioma en el recorrido» (ES → EN → ES en la barra): la prueba pulsa ES unos milisegundos después de pasar a EN y a veces ese clic no cambia el idioma. Pasa igual en la V6.24 (repitiéndola sola, falló 1 de 5 veces) y no toca nada de lo que cambió. Queda anotada para revisarla aparte.
 - Build.
 
 Qué verificar a mano, ya publicado:
