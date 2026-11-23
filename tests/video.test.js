@@ -52,6 +52,16 @@ test("YouTube: id o enlaces habituales", () => {
   assert.match(v.src, /youtube-nocookie\.com\/embed\/kB4uux4evWQ/);
 });
 
+test("YouTube vertical (Short): se marca vertical, se abre como Short y se reproduce dentro de la página en iPhone", () => {
+  const v = resolveVideo({ type: "youtube", url: "https://youtube.com/shorts/pnm3U1Q0YV8", vertical: true });
+  assert.equal(v.vertical, true);
+  assert.equal(v.src, "https://www.youtube-nocookie.com/embed/pnm3U1Q0YV8?rel=0&playsinline=1");
+  assert.equal(v.external, "https://www.youtube.com/shorts/pnm3U1Q0YV8");
+  const h = resolveVideo({ type: "youtube", id: "kB4uux4evWQ" });
+  assert.equal(h.vertical, undefined);
+  assert.equal(h.external, "https://www.youtube.com/watch?v=kB4uux4evWQ");
+});
+
 test("pantalla completa y video comparten el candado de desplazamiento: se libera al cerrar ambos, en cualquier orden", () => {
   const body = { style: { overflow: "auto" } };
   // Entra la pantalla completa, se abre el video, sale la pantalla completa (Esc) y luego se cierra el video.

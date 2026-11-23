@@ -530,6 +530,17 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; line-height: 1.12; let
 .video-status.is-error { pointer-events: auto; background: #0b1022; color: var(--on-night); z-index: 2; }
 .video-foot { font-size: 0.85rem; color: var(--on-night-soft); padding: 0.7rem 0.3rem 0.1rem; }
 .video-foot .text-link, .video-status .text-link { color: var(--gold); }
+/* Video vertical (9:16, como los Shorts), V6.25: el cuadro toma el alto disponible, el ancho sale de la proporción
+   y la caja se angosta con él; el título y el pie se acomodan a ese ancho. */
+.video-frame.is-vertical { aspect-ratio: 9 / 16; width: auto; max-height: none; height: min(calc(100dvh - 170px), calc((100vw - 3.8rem) * 16 / 9), 880px); }
+.video-box.is-vertical { width: min-content; max-width: calc(100vw - 2rem); }
+/* Pantallas bajas y acostadas (celular de lado): el título y el pie van junto al video, que así usa todo el alto. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .video-box.is-vertical { width: max-content; display: grid; grid-template-columns: auto minmax(0, 15rem); grid-template-rows: auto 1fr; column-gap: 0.9rem; }
+  .video-box.is-vertical .video-frame { grid-column: 1; grid-row: 1 / -1; height: min(calc(100dvh - 3.8rem), calc((100vw - 19.7rem) * 16 / 9)); }
+  .video-box.is-vertical .video-head { grid-column: 2; grid-row: 1; align-items: flex-start; }
+  .video-box.is-vertical .video-foot { grid-column: 2; grid-row: 2; align-self: end; }
+}
 
 /* ---------- Visor de evidencias (V6.8) ----------
    Imágenes y videos de la ficha en un carrusel sobre la página (misma ventana oscura que el
@@ -724,6 +735,17 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; line-height: 1.12; let
 .videopage-player { margin-top: 1.6rem; background: var(--night); color: var(--on-night); border-radius: 20px; padding: 0.9rem; box-shadow: var(--shadow); }
 .videopage-player .video-frame { max-height: none; }
 .videopage .note { margin-top: 1.4rem; }
+/* Página del video con un video vertical (V6.25): en celular va completo debajo del título; en pantallas anchas,
+   el texto y los botones a la izquierda y el video a la derecha, sin franjas negras a los lados. */
+.videopage.is-vertical .videopage-player { width: min-content; max-width: 100%; margin-inline: auto; }
+.videopage.is-vertical .video-frame { height: min(max(calc(100svh - 160px), 300px), calc((100vw - 4.3rem) * 16 / 9), 860px); }
+@media (min-width: 900px) {
+  .videopage.is-vertical { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 1fr auto auto 1fr; column-gap: clamp(2rem, 5vw, 4rem); padding-block: 1.5rem 2.5rem; }
+  .videopage.is-vertical .video-frame { height: min(max(calc(100svh - 200px), 300px), 860px); } /* la tarjeta entera, con su pie, cabe bajo la barra */
+  .videopage.is-vertical .videopage-head { grid-column: 1; grid-row: 2; }
+  .videopage.is-vertical .page-actions { grid-column: 1; grid-row: 3; }
+  .videopage.is-vertical .videopage-player { grid-column: 2; grid-row: 1 / -1; margin-top: 0; }
+}
 
 /* ---------- Asistente de contacto (prototipo con respuestas de demostración) ----------
    Un panel compacto en la esquina inferior (en móvil, una hoja inferior de media pantalla) que se

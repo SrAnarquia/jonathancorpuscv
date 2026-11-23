@@ -6,8 +6,10 @@
 //   { type: "drive",   url: "https://drive.google.com/file/d/<ID>/view" }  o  { type: "drive", id: "<ID>" }
 //   { type: "youtube", id: "<ID>" }  o  { type: "youtube", url: "https://youtu.be/<ID>" }
 //   null / undefined   sin video (el botón no se muestra)
+// Cualquiera admite vertical: true (video 9:16, como los Shorts): el reproductor se angosta y toma el alto de la
+// pantalla, y un Short de YouTube se abre en su reproductor de Shorts.
 //
-// Devuelve { kind: "native" | "embed", src, poster?, mime?, external?, title }
+// Devuelve { kind: "native" | "embed", src, poster?, mime?, external?, title, vertical? }
 // o null si no hay video o la configuración no es válida.
 
 const MIME = { mp4: "video/mp4", m4v: "video/mp4", webm: "video/webm", mov: "video/quicktime", ogv: "video/ogg" };
@@ -36,6 +38,11 @@ function mimeOf(src) {
 
 export function resolveVideo(video) {
   if (!video || typeof video !== "object") return null;
+  const out = resolveSource(video);
+  return out && video.vertical ? { ...out, vertical: true } : out;
+}
+
+function resolveSource(video) {
   const title = video.title || "Video";
 
   switch (video.type) {
@@ -66,8 +73,9 @@ export function resolveVideo(video) {
       return {
         kind: "embed",
         provider: "YouTube",
-        src: `https://www.youtube-nocookie.com/embed/${id}?rel=0`,
-        external: `https://www.youtube.com/watch?v=${id}`,
+        // playsinline: en iPhone se reproduce dentro de la página, sin saltar solo a pantalla completa
+        src: `https://www.youtube-nocookie.com/embed/${id}?rel=0&playsinline=1`,
+        external: video.vertical ? `https://www.youtube.com/shorts/${id}` : `https://www.youtube.com/watch?v=${id}`,
         title,
       };
     }

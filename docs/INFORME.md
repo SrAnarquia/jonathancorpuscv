@@ -1,16 +1,16 @@
 # Informe de entrega: portafolio de Jonathan Corpus
 
-Fecha: 9 de noviembre de 2026. Base: `jonathancorpusV3.rar` (carpeta `portafolio-vite`). Última revisión: versión 6.24, del 16 de noviembre (sobre la 6.23; la numeración salta de 4.6 a 6 a petición tuya; música: pista al 15 % y control al 35 %, sin cambios).
+Fecha: 23 de noviembre de 2026. Base: `jonathancorpusV3.rar` (carpeta `portafolio-vite`). Última revisión: versión 6.25, del 23 de noviembre (sobre la 6.24; la numeración salta de 4.6 a 6 a petición tuya; música: pista al 15 % y control al 35 %, sin cambios).
 
 ## Estado de la entrega: léelo primero
 
-- **Publicada:** la V6.23, que incluye la V6.22, está en el sitio desde el 16 de noviembre (commit `1c117ed`). La reauditoría en producción confirmó las siete correcciones, sin regresiones, y encontró un pendiente nuevo: R-01.
-- **Este zip es la V6.24:** corrige R-01 (Atrás con el visor de evidencias o el video abiertos) y pone al día este informe (R-03). Va sobre el commit `1c117ed`: 6 archivos modificados, ninguno nuevo ni borrado.
+- **En `main` (lo que publica Vercel):** la V6.24, commit `451ec15`, del 16 de noviembre.
+- **Esta es la V6.25:** tu video vertical nuevo y los CV con tu foto nueva, sobre la V6.24. Ya está en GitHub, en la rama `v6.25`, con su pull request: al fusionarlo, Vercel la publica. 13 archivos modificados, ninguno nuevo ni borrado.
 - **Para la reauditoría:** `REAUDITORIA_E2E_PORTAFOLIO.md` (el estado de cada hallazgo en producción) y `AUDITORIA_E2E_PORTAFOLIO.md` (la auditoría original, con su sección 12). Van aparte y no dentro del repositorio, porque el repositorio es público y la auditoría incluye la parte de seguridad.
 
 ### Qué se hizo
 
-Las filas 1 a 8 están publicadas y la reauditoría las confirmó en producción. La 9 y la 10 van en este zip.
+Las filas 1 a 8 están publicadas y la reauditoría las confirmó en producción. La 9 y la 10 llegaron a `main` con la V6.24. La 11 y la 12 son la V6.25.
 
 | # | Qué | Versión | Resultado (réplica local) |
 |---|---|---|---|
@@ -24,35 +24,60 @@ Las filas 1 a 8 están publicadas y la reauditoría las confirmó en producción
 | 8 | H-07: arranque del universo en pasos cortos y más tarde en celular | V6.23 | Al cargar en celular: tarea más larga 488 → 133 ms y bloqueo total 914 → 177 ms |
 | 9 | R-01: con el visor de evidencias o el video abiertos, Atrás los cierra primero y la ficha sigue | V6.24 | Antes, Atrás cerraba la ficha de abajo y el visor seguía abierto, incluso en `/video`; ahora se cierra una capa por Atrás: el visor, la ficha y después la página |
 | 10 | R-03: este informe, al día | V6.24 | Esta sección ya dice qué está publicado y qué trae el zip |
+| 11 | Tu Short `pnm3U1Q0YV8` como video de presentación, vertical (9:16) en la página «Video» y en la ventana de la nave | V6.25 | 9:16, completo en la pantalla y sin desbordes en PC (1366×768), celular (390×844) y celular acostado (851×393), con «Abrir en YouTube» a la vista |
+| 12 | Los CV con tu foto nueva | V6.25 | El mismo texto que los anteriores; solo cambia la foto |
 
-Pruebas: unitarias 47/47, e2e 445/445 y build desde un extracto limpio del zip. El detalle de cada cambio está en la sección de su versión, abajo. Siguen pendientes R-02 (Adelante reabre la ficha sin llevar la vista al universo), H-08 a H-30 y el aviso de H-22 para las rutas inexistentes.
+Pruebas de la V6.25: unitarias 48/48, e2e 460/461 (la que falla, de cambio de idioma, pasa sola; ver la sección 6.25) y build. El detalle de cada cambio está en la sección de su versión, abajo. Siguen pendientes R-02 (Adelante reabre la ficha sin llevar la vista al universo), H-08 a H-30 y el aviso de H-22 para las rutas inexistentes.
 
-### Cómo subirlo (directo a `main`)
+### Cómo publicarla
 
-1. Descomprime el zip en una carpeta nueva (no encima de tu copia actual) y entra a `portafolio-vite`, la que tiene `package.json`.
-2. Abre ahí una terminal (PowerShell, CMD o Git Bash) y corre, una por una:
+Ya está en GitHub, en la rama `v6.25`, con su pull request (https://github.com/SrAnarquia/jonathancorpuscv/pulls). No hace falta descargar ni correr nada:
 
-   ```
-   git init -b main
-   git remote add origin https://github.com/SrAnarquia/jonathancorpuscv.git
-   git fetch origin
-   git reset --soft origin/main
-   git add -A
-   git diff --cached --shortstat
-   git commit -m "V6.24: Atrás cierra primero el visor y el video; informe al día"
-   git push origin HEAD:main
-   ```
+1. Si quieres verla antes: Vercel arma una vista previa de la rama; la encuentras en el pull request o en *Deployments*.
+2. En el pull request presiona *Merge pull request* y luego *Confirm merge*. Vercel publica `main` solo, en uno o dos minutos.
+3. Para confirmar que ya está la nueva: abre la página «Video»; ahí debe estar tu Short nuevo, en vertical.
 
-   `git diff --cached --shortstat` debe empezar con `6 files changed`. Si dice otro número, no hagas el commit: o no estás en la carpeta correcta o `main` cambió después del 16 de noviembre, y lo que no esté en esta carpeta saldría del repositorio.
-3. Al hacer push, Git te pide entrar a GitHub (se abre el navegador o te pide tu token). Vercel lo publica solo en uno o dos minutos; lo ves en *Deployments*.
-4. Para confirmar que ya está la nueva: abre una ficha con imágenes (por ejemplo, la 07), ábrelas con «Ver imágenes» y presiona Atrás. Con la V6.24 se cierra el visor y la ficha sigue; con la V6.23 se cerraba la ficha y el visor seguía encima.
+## Versión 6.25: tu video vertical nuevo y los CV con tu foto nueva
 
-Si algo sale distinto:
+Lo que pediste el 23 de noviembre, sobre la V6.24:
 
-- «remote origin already exists»: sáltate esa línea.
-- Git pide tu nombre y correo: `git config --global user.name "Tu nombre"` y `git config --global user.email "tu-correo-de-github"`, y repite el commit.
-- «LF will be replaced by CRLF»: es normal en Windows.
-- Si prefieres verla antes en una vista previa: en el último comando usa `HEAD:v6-24`, ábrela desde *Deployments* en Vercel y, si todo está bien, corre `git push origin HEAD:main`.
+- Poner tu video nuevo (el Short https://youtube.com/shorts/pnm3U1Q0YV8), que cargue bien y sin perder la experiencia ahora que es vertical.
+- Poner los CV nuevos, iguales a los anteriores pero con tu foto nueva.
+- Subirlo a GitHub.
+
+| Qué pediste | Cómo queda |
+|---|---|
+| **El video nuevo.** | La página «Video» y el botón de la nave ya muestran tu Short `pnm3U1Q0YV8`. |
+| **Que se vea bien en vertical.** | El reproductor es 9:16 y toma el alto de la pantalla. En PC, la página «Video» pone el título y los botones a la izquierda y el video a la derecha, completo y sin bajar; en celular va debajo del título, a todo lo ancho. La ventana que abre la nave se angosta con el video y, con el celular acostado, el título y «Abrir en YouTube» pasan junto al video para que este use todo el alto. Los videos de evidencia de los proyectos siguen horizontales, como estaban. |
+| **Que cargue bien.** | El reproductor se carga desde `youtube-nocookie.com/embed/`, con la política de seguridad y la de «Referer» que YouTube pide, y ahora con `playsinline` para que en iPhone se reproduzca dentro de la página. Debajo del video sigue «Abrir en YouTube», que ahora abre el Short. El aviso de que el video no se podía ver casi seguro venía del video anterior: un video quitado o privado ya no se puede ver en otras páginas. El Short nuevo está como «No listado», que sí se puede. |
+| **Los CV con tu foto nueva.** | Los botones de descarga ya entregan tus CV nuevos. Revisé que el texto es idéntico al de los anteriores y que solo cambió la foto. |
+| **Subirlo a GitHub.** | Está en la rama `v6.25`, con su pull request, encima de tu V6.24: se queda todo lo de la V6.22 a la V6.24 (el robot 3D, Atrás, las tipografías del sitio y el arranque del universo). |
+
+Lo que no se tocó:
+
+- El resto del sitio, incluido todo lo de la V6.22 a la V6.24.
+- Tu `vite.config.js`, byte por byte.
+
+Archivos modificados:
+
+- `src/data/profile.js`: el video nuevo, con `vertical: true`.
+- `src/lib/video.js`: la marca de video vertical, el enlace de Short y `playsinline`.
+- `src/components/VideoModal.jsx`, `src/components/VideoPage.jsx` y `src/index.css`: el acomodo vertical.
+- `public/JonathanCorpusCV_ESP.pdf` y `_ENG.pdf`: tus CV con la foto nueva.
+- `tests/video.test.js`, `tests/evidence.test.js` y `tests/e2e/qa.cjs`: el video nuevo y las comprobaciones del acomodo vertical.
+- `docs/CONTENIDO.md`, `README.md` y este informe.
+
+Pruebas:
+
+- Unitarias: 48/48 (`npm test`).
+- e2e: 460/461 en la corrida completa, contra el servidor con las cabeceras de producción: las 445 de antes y 16 del video vertical (página «Video» y ventana de la nave en PC 1366×768, celular 390×844 y celular acostado 851×393: 9:16, completo en la pantalla, sin desbordes y con «Abrir en YouTube» a la vista), todas bien.
+- La que falla es «V6.5: cambiar de idioma en el recorrido» (ES → EN → ES en la barra): dentro de la corrida completa falló las 3 veces, pero sola pasa siempre, en esta versión y en la V6.24, y no toca nada de lo que cambió. Queda anotada para revisarla aparte.
+- Build.
+
+Qué verificar a mano, ya publicado:
+
+- La página «Video» y el botón de la nave, en tu celular y en la PC: que el Short se reproduzca.
+- Los CV desde los botones de descarga.
 
 ## Versión 6.24: Atrás cierra primero el visor de evidencias y el video
 

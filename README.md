@@ -46,8 +46,8 @@ BASE=http://localhost:4180 npm run test:e2e
 
 | Archivo | Para qué | Estado |
 |---|---|---|
-| `JonathanCorpusCV_ESP.pdf` | Botón «CV en español» | Incluido (CV aprobado el 1 de noviembre de 2026, versión 6.7; desde la 6.20 con el enlace al portafolio en lugar de la ubicación y desde la 6.21 con los íconos de contacto en vector). Si falta, el botón se marca como *(pendiente)* |
-| `JonathanCorpusCV_ENG.pdf` | Botón «CV in English» | Incluido (CV aprobado el 1 de noviembre de 2026, versión 6.7; desde la 6.20 con el enlace al portafolio en lugar de la ubicación y desde la 6.21 con los íconos de contacto en vector) |
+| `JonathanCorpusCV_ESP.pdf` | Botón «CV en español» | Incluido (CV aprobado el 1 de noviembre de 2026, versión 6.7; desde la 6.20 con el enlace al portafolio en lugar de la ubicación, desde la 6.21 con los íconos de contacto en vector y desde la 6.25 con tu foto nueva). Si falta, el botón se marca como *(pendiente)* |
+| `JonathanCorpusCV_ENG.pdf` | Botón «CV in English» | Incluido (CV aprobado el 1 de noviembre de 2026, versión 6.7; desde la 6.20 con el enlace al portafolio en lugar de la ubicación, desde la 6.21 con los íconos de contacto en vector y desde la 6.25 con tu foto nueva) |
 | `Me.jpg` | (ya no se usa) | La página «Sobre mí» se quitó; queda una copia recortada en `assets-src/Me.jpg` por si se quiere usar |
 | `musica.mp3` | Música de fondo | Incluida, atenuada al 15 % del original (ver `docs/CONTENIDO.md`, sección 10) |
 
